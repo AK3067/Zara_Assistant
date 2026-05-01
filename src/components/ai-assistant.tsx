@@ -14,10 +14,17 @@ import {
   Sparkles,
   ArrowLeft,
   Home,
+  AlarmClock,
+  Music,
+  Send,
+  Clock,
+  Clipboard,
+  Cpu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useAssistantStore } from '@/store/assistant-store';
 import { ChatInterface } from './chat-interface';
@@ -25,6 +32,12 @@ import { VoiceInterface } from './voice-interface';
 import { QuickTaskPanel } from './quick-task-panel';
 import { AssistantSettings } from './assistant-settings';
 import { AIAvatar } from './ai-avatar';
+import { AlarmManager } from './alarm-manager';
+import { MediaControl } from './media-control';
+import { MessagingPanel } from './messaging-panel';
+import { TimeTriggersPanel } from './time-triggers-panel';
+import { ClipboardManager } from './clipboard-manager';
+import { LocalAIPanel } from './local-ai-panel';
 import { useAssistant } from '@/hooks/use-assistant';
 
 interface AIAssistantProps {
@@ -34,11 +47,36 @@ interface AIAssistantProps {
 }
 
 type View = 'main' | 'history' | 'settings';
+type FeatureTab = 'chat' | 'voice' | 'quick' | 'alarms' | 'media' | 'messaging' | 'triggers' | 'clipboard' | 'local-ai';
+
+const FEATURE_TABS: { id: FeatureTab; label: string; icon: React.ElementType }[] = [
+  { id: 'chat', label: 'Chat', icon: MessageSquare },
+  { id: 'voice', label: 'Voice', icon: Mic },
+  { id: 'quick', label: 'Quick', icon: Zap },
+  { id: 'alarms', label: 'Alarms', icon: AlarmClock },
+  { id: 'media', label: 'Media', icon: Music },
+  { id: 'messaging', label: 'Messages', icon: Send },
+  { id: 'triggers', label: 'Triggers', icon: Clock },
+  { id: 'clipboard', label: 'Clipboard', icon: Clipboard },
+  { id: 'local-ai', label: 'Local AI', icon: Cpu },
+];
 
 export function AIAssistant({ theme, onThemeChange, onBack }: AIAssistantProps) {
-  const { mode, setMode, messages, conversations, createConversation, loadConversation, deleteConversation, clearMessages, isListening: storeIsListening, isSpeaking: storeIsSpeaking, isProcessing: storeIsProcessing } = useAssistantStore();
+  const { 
+    mode, 
+    setMode, 
+    messages, 
+    conversations, 
+    createConversation, 
+    loadConversation, 
+    clearMessages, 
+    isListening: storeIsListening, 
+    isSpeaking: storeIsSpeaking, 
+    isProcessing: storeIsProcessing 
+  } = useAssistantStore();
   const [view, setView] = useState<View>('main');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<FeatureTab>('chat');
 
   const {
     sendMessage,
@@ -47,7 +85,6 @@ export function AIAssistant({ theme, onThemeChange, onBack }: AIAssistantProps) 
     stopListening,
     isListening,
     transcript,
-    speak,
     isSpeaking,
     isVoiceSupported,
     isProcessing,
@@ -64,6 +101,53 @@ export function AIAssistant({ theme, onThemeChange, onBack }: AIAssistantProps) 
     loadConversation(id);
     setView('main');
     setIsSidebarOpen(false);
+  };
+
+  const renderFeatureContent = () => {
+    switch (activeTab) {
+      case 'chat':
+        return (
+          <ChatInterface
+            messages={messages}
+            isTyping={isTyping}
+            isProcessing={isProcessing}
+            isListening={isListening}
+            isVoiceSupported={isVoiceSupported}
+            onSendMessage={sendMessage}
+            onStartListening={startListening}
+            onStopListening={stopListening}
+          />
+        );
+      case 'voice':
+        return (
+          <VoiceInterface
+            isListening={isListening}
+            isSpeaking={isSpeaking}
+            isProcessing={isProcessing}
+            transcript={transcript}
+            isVoiceSupported={isVoiceSupported}
+            onStartListening={startListening}
+            onStopListening={stopListening}
+            onSendMessage={sendMessage}
+          />
+        );
+      case 'quick':
+        return <QuickTaskPanel />;
+      case 'alarms':
+        return <AlarmManager />;
+      case 'media':
+        return <MediaControl />;
+      case 'messaging':
+        return <MessagingPanel />;
+      case 'triggers':
+        return <TimeTriggersPanel />;
+      case 'clipboard':
+        return <ClipboardManager />;
+      case 'local-ai':
+        return <LocalAIPanel />;
+      default:
+        return null;
+    }
   };
 
   const renderContent = () => {
@@ -129,41 +213,26 @@ export function AIAssistant({ theme, onThemeChange, onBack }: AIAssistantProps) 
       );
     }
 
-    // Main view with mode tabs
+    // Main view with feature tabs
     return (
       <div className="flex flex-col h-full">
-        {/* Mode Tabs */}
-        <div className="border-b">
+        {/* Feature Tabs - Desktop */}
+        <div className="hidden md:block border-b">
           <div className="flex items-center justify-between p-2">
-            <div className="flex items-center gap-1">
-              <Button
-                variant={mode === 'chat' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setMode('chat')}
-                className="gap-2"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Chat</span>
-              </Button>
-              <Button
-                variant={mode === 'voice' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setMode('voice')}
-                className="gap-2"
-              >
-                <Mic className="w-4 h-4" />
-                <span className="hidden sm:inline">Voice</span>
-              </Button>
-              <Button
-                variant={mode === 'quick' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setMode('quick')}
-                className="gap-2"
-              >
-                <Zap className="w-4 h-4" />
-                <span className="hidden sm:inline">Quick</span>
-              </Button>
-            </div>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FeatureTab)} className="flex-1">
+              <TabsList className="bg-transparent gap-1 h-auto flex-wrap">
+                {FEATURE_TABS.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-1.5 px-3 py-1.5"
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    <span className="hidden lg:inline">{tab.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
             {/* Right side buttons */}
             <div className="flex items-center gap-1">
@@ -263,59 +332,15 @@ export function AIAssistant({ theme, onThemeChange, onBack }: AIAssistantProps) 
         {/* Content Area */}
         <div className="flex-1 overflow-hidden">
           <AnimatePresence mode="wait">
-            {mode === 'chat' && (
-              <motion.div
-                key="chat"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="h-full"
-              >
-                <ChatInterface
-                  messages={messages}
-                  isTyping={isTyping}
-                  isProcessing={isProcessing}
-                  isListening={isListening}
-                  isVoiceSupported={isVoiceSupported}
-                  onSendMessage={sendMessage}
-                  onStartListening={startListening}
-                  onStopListening={stopListening}
-                />
-              </motion.div>
-            )}
-
-            {mode === 'voice' && (
-              <motion.div
-                key="voice"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="h-full"
-              >
-                <VoiceInterface
-                  isListening={isListening}
-                  isSpeaking={isSpeaking}
-                  isProcessing={isProcessing}
-                  transcript={transcript}
-                  isVoiceSupported={isVoiceSupported}
-                  onStartListening={startListening}
-                  onStopListening={stopListening}
-                  onSendMessage={sendMessage}
-                />
-              </motion.div>
-            )}
-
-            {mode === 'quick' && (
-              <motion.div
-                key="quick"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="h-full overflow-auto"
-              >
-                <QuickTaskPanel />
-              </motion.div>
-            )}
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="h-full"
+            >
+              {renderFeatureContent()}
+            </motion.div>
           </AnimatePresence>
         </div>
       </div>
@@ -355,54 +380,42 @@ export function AIAssistant({ theme, onThemeChange, onBack }: AIAssistantProps) 
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-around py-2">
+      <nav className="md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-x-auto">
+        <div className="flex items-center justify-start gap-1 p-2 min-w-max">
           {onBack && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="flex-col h-auto py-2"
+              className="flex-col h-auto py-2 px-3"
             >
               <Home className="w-5 h-5" />
               <span className="text-xs mt-1">Home</span>
             </Button>
           )}
+          {FEATURE_TABS.slice(0, 5).map((tab) => (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab(tab.id)}
+              className="flex-col h-auto py-2 px-3"
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className="text-xs mt-1">{tab.label}</span>
+            </Button>
+          ))}
           <Button
-            variant={mode === 'chat' ? 'default' : 'ghost'}
+            variant="ghost"
             size="sm"
-            onClick={() => setMode('chat')}
-            className="flex-col h-auto py-2"
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-xs mt-1">Chat</span>
-          </Button>
-          <Button
-            variant={mode === 'voice' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('voice')}
-            className="flex-col h-auto py-2"
-          >
-            <Mic className="w-5 h-5" />
-            <span className="text-xs mt-1">Voice</span>
-          </Button>
-          <Button
-            variant={mode === 'quick' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setMode('quick')}
-            className="flex-col h-auto py-2"
-          >
-            <Zap className="w-5 h-5" />
-            <span className="text-xs mt-1">Quick</span>
-          </Button>
-          <Button
-            variant={view === 'settings' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView(view === 'settings' ? 'main' : 'settings')}
-            className="flex-col h-auto py-2"
+            onClick={() => {
+              // Show more options - for now just toggle settings
+              setView(view === 'settings' ? 'main' : 'settings');
+            }}
+            className="flex-col h-auto py-2 px-3"
           >
             <Settings className="w-5 h-5" />
-            <span className="text-xs mt-1">Settings</span>
+            <span className="text-xs mt-1">More</span>
           </Button>
         </div>
       </nav>

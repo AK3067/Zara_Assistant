@@ -180,3 +180,5 @@ export interface ASRResponse {
   text?: string;
   error?: string;
 }
+
+// Local AI types are in ./local-ai.ts
