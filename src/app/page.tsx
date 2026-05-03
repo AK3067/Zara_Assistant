@@ -5,12 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AIAssistant } from '@/components/ai-assistant';
 import { AssistantOverlay } from '@/components/assistant-overlay';
 import { LandingScreen } from '@/components/landing-screen';
+import { ZaraAI } from '@/components/zara';
 import { useWakeWord } from '@/hooks/use-wake-word';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
 import { useAssistantStore } from '@/store/assistant-store';
 
-type AppState = 'landing' | 'overlay' | 'full';
+type AppState = 'landing' | 'overlay' | 'full' | 'zara';
 
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
@@ -181,12 +182,12 @@ export default function Home() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Handle opening app
+  // Handle opening app - NOW OPENS NEW ZARA AI
   const handleOpenApp = useCallback(() => {
     setIsOpening(true);
     stopWakeWordListening();
     setTimeout(() => {
-      setAppState('full');
+      setAppState('zara');
       setIsOpening(false);
     }, 300);
   }, [stopWakeWordListening]);
@@ -262,7 +263,21 @@ export default function Home() {
         isVoiceSupported={isVoiceSupported}
       />
 
-      {/* Full UI Mode */}
+      {/* NEW ZARA AI MODE - Full featured next-gen assistant */}
+      <AnimatePresence>
+        {appState === 'zara' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="h-screen"
+          >
+            <ZaraAI onWakeWord={handleBackToLanding} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Legacy Full UI Mode (kept for compatibility) */}
       <AnimatePresence>
         {appState === 'full' && (
           <motion.div
