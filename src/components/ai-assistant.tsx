@@ -37,7 +37,7 @@ import { MediaControl } from './media-control';
 import { MessagingPanel } from './messaging-panel';
 import { TimeTriggersPanel } from './time-triggers-panel';
 import { ClipboardManager } from './clipboard-manager';
-import { LocalAIPanel } from './local-ai-panel';
+import { LocalAIPanel } from '@/components/local-ai-panel';
 import { useAssistant } from '@/hooks/use-assistant';
 
 interface AIAssistantProps {
