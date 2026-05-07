@@ -2,22 +2,16 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AIAssistant } from '@/components/ai-assistant';
+import { LandingScreen, ZaraAI } from '@/components/zara-new';
 import { AssistantOverlay } from '@/components/assistant-overlay';
-import { LandingScreen } from '@/components/landing-screen';
-import { ZaraAI } from '@/components/zara';
 import { useWakeWord } from '@/hooks/use-wake-word';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
 import { useAssistantStore } from '@/store/assistant-store';
 
-type AppState = 'landing' | 'overlay' | 'full' | 'zara';
+type AppState = 'landing' | 'overlay' | 'zara';
 
 export default function Home() {
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
-    if (typeof window === 'undefined') return 'system';
-    return (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system';
-  });
   const [appState, setAppState] = useState<AppState>('landing');
   const [isOpening, setIsOpening] = useState(false);
   const [overlayTranscript, setOverlayTranscript] = useState('');
@@ -152,35 +146,13 @@ export default function Home() {
     if (mountedRef.current) return;
     mountedRef.current = true;
 
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null;
-    const currentTheme = savedTheme || 'system';
-
-    const root = document.documentElement;
-    if (currentTheme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.toggle('dark', systemTheme === 'dark');
-    } else {
-      root.classList.toggle('dark', currentTheme === 'dark');
-    }
+    // Set dark mode by default
+    document.documentElement.classList.add('dark');
 
     requestAnimationFrame(() => {
       setIsReady(true);
     });
   }, []);
-
-  // Handle theme changes
-  useEffect(() => {
-    if (!mountedRef.current) return;
-
-    const root = document.documentElement;
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.toggle('dark', systemTheme === 'dark');
-    } else {
-      root.classList.toggle('dark', theme === 'dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
 
   // Handle opening app - NOW OPENS NEW ZARA AI
   const handleOpenApp = useCallback(() => {
@@ -213,10 +185,6 @@ export default function Home() {
       startWakeWordListening();
     }, 100);
   }, [startWakeWordListening]);
-
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme);
-  };
 
   // Check voice support
   const isVoiceSupported = isRecognitionSupported && isSynthesisSupported;
@@ -277,23 +245,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Legacy Full UI Mode (kept for compatibility) */}
-      <AnimatePresence>
-        {appState === 'full' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-screen"
-          >
-            <AIAssistant
-              theme={theme}
-              onThemeChange={handleThemeChange}
-              onBack={handleBackToLanding}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }
