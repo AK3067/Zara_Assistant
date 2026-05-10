@@ -112,14 +112,14 @@ export function NameSelectionScreen({ onComplete }: NameSelectionScreenProps) {
                   const isPlaying = isVoicePlaying === personality.name;
 
                   return (
-                    <motion.button
+                    <motion.div
                       key={personality.name}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                       onClick={() => handleSelect(personality.name)}
                       className={cn(
-                        "w-full p-4 rounded-2xl border transition-all text-left",
+                        "w-full p-4 rounded-2xl border transition-all text-left cursor-pointer",
                         "hover:bg-white/5",
                         isSelected
                           ? "bg-white/10 border-white/30"
@@ -159,10 +159,18 @@ export function NameSelectionScreen({ onComplete }: NameSelectionScreenProps) {
 
                       {/* Voice Sample Button */}
                       <div className="mt-3 flex items-center gap-2 ml-16">
-                        <button
+                        <div
+                          role="button"
+                          tabIndex={0}
                           onClick={(e) => {
                             e.stopPropagation();
                             playVoiceSample(personality);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.stopPropagation();
+                              playVoiceSample(personality);
+                            }
                           }}
                           className={cn(
                             "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all",
@@ -173,9 +181,9 @@ export function NameSelectionScreen({ onComplete }: NameSelectionScreenProps) {
                         >
                           <Volume2 className={cn("w-3 h-3", isPlaying && "animate-pulse")} />
                           {isPlaying ? 'Playing...' : 'Hear voice'}
-                        </button>
+                        </div>
                       </div>
-                    </motion.button>
+                    </motion.div>
                   );
                 })}
               </motion.div>

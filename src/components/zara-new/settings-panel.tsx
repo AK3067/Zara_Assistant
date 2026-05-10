@@ -136,11 +136,18 @@ export function SettingsPanel({ onBack, onNavigate }: SettingsPanelProps) {
                       const isPlaying = playingVoice === personality.name;
 
                       return (
-                        <button
+                        <div
                           key={personality.name}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => handleSelectPersonality(personality.name)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              handleSelectPersonality(personality.name);
+                            }
+                          }}
                           className={cn(
-                            "w-full p-3 rounded-xl border transition-all text-left",
+                            "w-full p-3 rounded-xl border transition-all text-left cursor-pointer",
                             isSelected
                               ? "border-white/30 bg-white/10"
                               : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"
@@ -164,22 +171,30 @@ export function SettingsPanel({ onBack, onNavigate }: SettingsPanelProps) {
                               </div>
                               <p className="text-xs text-white/40 truncate">{personality.description}</p>
                             </div>
-                            <button
+                            <div
+                              role="button"
+                              tabIndex={0}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 playVoiceSample(personality);
                               }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.stopPropagation();
+                                  playVoiceSample(personality);
+                                }
+                              }}
                               className={cn(
-                                "p-2 rounded-full transition-all",
+                                "p-2 rounded-full transition-all cursor-pointer",
                                 isPlaying
                                   ? "bg-white/20 text-white"
                                   : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60"
                               )}
                             >
                               <VolumeIcon className={cn("w-4 h-4", isPlaying && "animate-pulse")} />
-                            </button>
+                            </div>
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
