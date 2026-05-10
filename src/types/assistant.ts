@@ -212,6 +212,15 @@ export type MemoryCategory =
 // File/Document Types
 export type DocFileType = 'note' | 'document' | 'list' | 'reminder' | 'idea' | 'journal';
 
+// OCR History Types
+export interface OCRHistoryItem {
+  id: string;
+  text: string;
+  imageUrl?: string;
+  language: string;
+  createdAt: number;
+}
+
 export interface DocFile {
   id: string;
   title: string;
@@ -255,6 +264,9 @@ export interface AssistantState {
 
   // Files/Documents
   files: DocFile[];
+
+  // OCR History
+  ocrHistory: OCRHistoryItem[];
 
   // Actions
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -302,6 +314,11 @@ export interface AssistantState {
   // AI Personality Actions
   setAIName: (name: AIName) => void;
   completeSetup: () => void;
+
+  // OCR History Actions
+  addOCRHistory: (item: Omit<OCRHistoryItem, 'id' | 'createdAt'>) => void;
+  deleteOCRHistory: (id: string) => void;
+  clearOCRHistory: () => void;
 }
 
 // Voice Recognition Types

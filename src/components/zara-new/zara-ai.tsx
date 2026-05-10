@@ -8,13 +8,14 @@ import {
   Settings, 
   Plus, 
   Sparkles, 
-  Home, 
   Wifi, 
   WifiOff,
   Menu,
   Cloud,
   FileText,
-  Scan
+  Scan,
+  Clock,
+  Trash2,
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
@@ -42,9 +43,12 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const {
     conversations,
     files,
+    ocrHistory,
     createConversation,
     clearMessages,
     loadConversation,
+    deleteConversation,
+    deleteOCRHistory,
     settings,
     setAIName,
     completeSetup,
@@ -87,6 +91,23 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
     return <NameSelectionScreen onComplete={handleSetupComplete} />;
   }
 
+  // Format time for history items
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
+
   // Sidebar Content
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-black">
@@ -118,9 +139,8 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
         </div>
       </div>
 
-      {/* Navigation Options */}
-      <div className="flex-1 p-3 space-y-2 overflow-y-auto">
-        {/* New Chat Button */}
+      {/* New Chat Button */}
+      <div className="p-3 border-b border-white/10">
         <button
           onClick={handleNewChat}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-all"
@@ -128,145 +148,120 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <Plus className="w-5 h-5" />
           <span>New Chat</span>
         </button>
-
-        {/* Divider */}
-        <div className="h-px bg-white/10 my-3" />
-
-        {/* Chat Option */}
-        <button
-          onClick={() => handleSelectView('chat')}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-            view === 'chat'
-              ? "bg-white text-black"
-              : "bg-transparent text-white hover:bg-white/10"
-          )}
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span className="font-medium">Chat</span>
-          <Cloud className="w-4 h-4 ml-auto opacity-60" />
-        </button>
-
-        {/* Local AI Option */}
-        <button
-          onClick={() => handleSelectView('local-ai')}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-            view === 'local-ai'
-              ? "bg-white text-black"
-              : "bg-transparent text-white hover:bg-white/10"
-          )}
-        >
-          <Cpu className="w-5 h-5" />
-          <span className="font-medium">Local AI</span>
-          <span className={cn(
-            "ml-auto text-xs px-2 py-0.5 rounded-full",
-            view === 'local-ai'
-              ? "bg-black/20 text-black"
-              : "bg-green-500/20 text-green-500"
-          )}>
-            Offline
-          </span>
-        </button>
-
-        {/* Files Option */}
-        <button
-          onClick={() => handleSelectView('files')}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-            view === 'files'
-              ? "bg-white text-black"
-              : "bg-transparent text-white hover:bg-white/10"
-          )}
-        >
-          <FileText className="w-5 h-5" />
-          <span className="font-medium">Files</span>
-          {files && files.length > 0 && (
-            <span className={cn(
-              "ml-auto text-xs px-2 py-0.5 rounded-full",
-              view === 'files'
-                ? "bg-black/20 text-black"
-                : "bg-blue-500/20 text-blue-400"
-            )}>
-              {files.filter(f => !f.isArchived).length}
-            </span>
-          )}
-        </button>
-
-        {/* OCR Scanner Option */}
-        <button
-          onClick={() => handleSelectView('ocr')}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-            view === 'ocr'
-              ? "bg-white text-black"
-              : "bg-transparent text-white hover:bg-white/10"
-          )}
-        >
-          <Scan className="w-5 h-5" />
-          <span className="font-medium">OCR Scanner</span>
-          <span className={cn(
-            "ml-auto text-xs px-2 py-0.5 rounded-full",
-            view === 'ocr'
-              ? "bg-black/20 text-black"
-              : "bg-green-500/20 text-green-400"
-          )}>
-            EN
-          </span>
-        </button>
-
-        {/* Divider */}
-        <div className="h-px bg-white/10 my-3" />
-
-        {/* Settings Option */}
-        <button
-          onClick={() => handleSelectView('settings')}
-          className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-            view === 'settings'
-              ? "bg-white text-black"
-              : "bg-transparent text-white hover:bg-white/10"
-          )}
-        >
-          <Settings className="w-5 h-5" />
-          <span className="font-medium">Settings</span>
-        </button>
       </div>
 
-      {/* Recent Conversations */}
-      {conversations && conversations.length > 0 && (
-        <div className="p-3 border-t border-white/10">
-          <p className="text-xs text-white/50 uppercase tracking-wider mb-2 px-2">
-            Recent Chats
-          </p>
-          <ScrollArea className="max-h-32">
-            <div className="space-y-1">
-              {conversations.slice(0, 5).map((conv) => (
-                <button
-                  key={conv.id}
-                  onClick={() => handleLoadConversation(conv.id)}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all truncate"
-                >
-                  {conv.title}
-                </button>
-              ))}
+      {/* History Section - Chat & OCR */}
+      <ScrollArea className="flex-1 p-3">
+        <div className="space-y-4">
+          {/* Chat History */}
+          <div>
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-xs text-white/40 uppercase tracking-wider">Chats</span>
+              {conversations && conversations.length > 0 && (
+                <span className="text-xs text-white/30">{conversations.length}</span>
+              )}
             </div>
-          </ScrollArea>
-        </div>
-      )}
+            {conversations && conversations.length > 0 ? (
+              <div className="space-y-1">
+                {conversations.slice(0, 10).map((conv) => (
+                  <div
+                    key={conv.id}
+                    className="group flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={() => handleLoadConversation(conv.id)}
+                  >
+                    <MessageSquare className="w-4 h-4 text-white/40 flex-shrink-0" />
+                    <span className="flex-1 text-sm text-white/70 truncate">{conv.title}</span>
+                    <span className="text-xs text-white/30">{formatTime(conv.updatedAt)}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteConversation(conv.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
+                    >
+                      <Trash2 className="w-3 h-3 text-white/40 hover:text-red-400" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-white/30 px-2 py-2">No chat history</p>
+            )}
+          </div>
 
-      {/* Back to Home */}
-      {onWakeWord && (
-        <div className="p-3 border-t border-white/10">
+          {/* OCR History */}
+          <div>
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-xs text-white/40 uppercase tracking-wider">OCR Scans</span>
+              {ocrHistory && ocrHistory.length > 0 && (
+                <span className="text-xs text-white/30">{ocrHistory.length}</span>
+              )}
+            </div>
+            {ocrHistory && ocrHistory.length > 0 ? (
+              <div className="space-y-1">
+                {ocrHistory.slice(0, 5).map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setView('ocr');
+                      setIsMobileSidebarOpen(false);
+                    }}
+                  >
+                    <Scan className="w-4 h-4 text-green-400/60 flex-shrink-0" />
+                    <span className="flex-1 text-sm text-white/70 truncate">{item.text.slice(0, 25)}...</span>
+                    <span className="text-xs text-white/30">{formatTime(item.createdAt)}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteOCRHistory(item.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
+                    >
+                      <Trash2 className="w-3 h-3 text-white/40 hover:text-red-400" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-white/30 px-2 py-2">No OCR history</p>
+            )}
+          </div>
+        </div>
+      </ScrollArea>
+
+      {/* Bottom Navigation - Settings & Files */}
+      <div className="p-3 border-t border-white/10">
+        <div className="flex gap-2">
           <button
-            onClick={onWakeWord}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 hover:text-white transition-all"
+            onClick={() => handleSelectView('settings')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all",
+              view === 'settings'
+                ? "bg-white/10 text-white"
+                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            )}
           >
-            <Home className="w-5 h-5" />
-            <span>Back to Home</span>
+            <Settings className="w-4 h-4" />
+            <span className="text-sm">Settings</span>
+          </button>
+          <button
+            onClick={() => handleSelectView('files')}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all",
+              view === 'files'
+                ? "bg-white/10 text-white"
+                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white"
+            )}
+          >
+            <FileText className="w-4 h-4" />
+            <span className="text-sm">Files</span>
+            {files && files.length > 0 && (
+              <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded-full">{files.filter(f => !f.isArchived).length}</span>
+            )}
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 
@@ -365,7 +360,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
               <motion.div
                 key="settings"
                 initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
                 className="h-full"

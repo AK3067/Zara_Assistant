@@ -34,22 +34,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useAssistantStore } from '@/store/assistant-store';
 
-// OCR History entry type
-interface OCREntry {
-  id: string;
-  imageUrl: string;
-  extractedText: string;
-  confidence: number;
-  timestamp: number;
-  language: string;
-}
-
 interface OCRPanelProps {
   onBack?: () => void;
 }
 
 export function OCRPanel({ onBack }: OCRPanelProps) {
-  const { addFile } = useAssistantStore();
+  const { addFile, ocrHistory, addOCRHistory, deleteOCRHistory, clearOCRHistory } = useAssistantStore();
   
   // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -61,7 +51,6 @@ export function OCRPanel({ onBack }: OCRPanelProps) {
   const [confidence, setConfidence] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ocrHistory, setOcrHistory] = useState<OCREntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -71,25 +60,6 @@ export function OCRPanel({ onBack }: OCRPanelProps) {
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  // Load history from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('zara-ocr-history');
-    if (saved) {
-      try {
-        setOcrHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to load OCR history:', e);
-      }
-    }
-  }, []);
-
-  // Save history to localStorage
-  const saveHistory = useCallback((entry: OCREntry) => {
-    const newHistory = [entry, ...ocrHistory].slice(0, 20); // Keep last 20 entries
-    setOcrHistory(newHistory);
-    localStorage.setItem('zara-ocr-history', JSON.stringify(newHistory));
-  }, [ocrHistory]);
 
   // Handle file upload
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,16 +171,12 @@ export function OCRPanel({ onBack }: OCRPanelProps) {
         setExtractedText(text);
         setConfidence(conf);
         
-        // Save to history
-        const entry: OCREntry = {
-          id: Date.now().toString(),
-          imageUrl,
-          extractedText: text,
-          confidence: conf,
-          timestamp: Date.now(),
+        // Save to global history
+        addOCRHistory({
+          text: text,
+          imageUrl: imageUrl,
           language: 'eng',
-        };
-        saveHistory(entry);
+        });
       }
     } catch (err) {
       console.error('OCR Error:', err);
@@ -220,7 +186,7 @@ export function OCRPanel({ onBack }: OCRPanelProps) {
       setProgress(0);
       setProgressText('');
     }
-  }, [imageUrl, saveHistory]);
+  }, [imageUrl, addOCRHistory]);
 
   // Copy to clipboard
   const copyToClipboard = useCallback(() => {
@@ -279,26 +245,25 @@ export function OCRPanel({ onBack }: OCRPanelProps) {
   }, []);
 
   // Load from history
-  const loadFromHistory = useCallback((entry: OCREntry) => {
-    setImageUrl(entry.imageUrl);
-    setExtractedText(entry.extractedText);
-    setConfidence(entry.confidence);
-    setImageName(`History_${new Date(entry.timestamp).toLocaleDateString()}`);
+  const loadFromHistory = useCallback((entry: typeof ocrHistory[0]) => {
+    if (entry.imageUrl) {
+      setImageUrl(entry.imageUrl);
+    }
+    setExtractedText(entry.text);
+    setConfidence(null);
+    setImageName(`History_${new Date(entry.createdAt).toLocaleDateString()}`);
     setShowHistory(false);
   }, []);
 
   // Delete history entry
   const deleteHistoryEntry = useCallback((id: string) => {
-    const newHistory = ocrHistory.filter(h => h.id !== id);
-    setOcrHistory(newHistory);
-    localStorage.setItem('zara-ocr-history', JSON.stringify(newHistory));
-  }, [ocrHistory]);
+    deleteOCRHistory(id);
+  }, [deleteOCRHistory]);
 
   // Clear all history
   const clearHistory = useCallback(() => {
-    setOcrHistory([]);
-    localStorage.removeItem('zara-ocr-history');
-  }, []);
+    clearOCRHistory();
+  }, [clearOCRHistory]);
 
   // Zoom controls
   const handleZoomIn = useCallback(() => setZoom(z => Math.min(z + 0.25, 3)), []);
@@ -360,14 +325,14 @@ export function OCRPanel({ onBack }: OCRPanelProps) {
                       <img
                         src={entry.imageUrl}
                         alt=""
-                        className="w-8 h-8 rounded object-cover"
+                        className="w-8 h-8 rounded object-cover bg-white/10"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-white truncate">
-                          {entry.extractedText.slice(0, 40)}...
+                          {entry.text.slice(0, 40)}...
                         </p>
                         <p className="text-[10px] text-white/30">
-                          {new Date(entry.timestamp).toLocaleString()}
+                          {new Date(entry.createdAt).toLocaleString()}
                         </p>
                       </div>
                       <Button

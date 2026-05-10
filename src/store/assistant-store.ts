@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory, DocFile, AIName, AIPersonality } from '@/types/assistant';
+import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory, DocFile, AIName, AIPersonality, OCRHistoryItem } from '@/types/assistant';
 import { AI_PERSONALITIES } from '@/types/assistant';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
@@ -168,6 +168,7 @@ export const useAssistantStore = create<AssistantState>()(
       tasks: [],
       memories: [],
       files: [],
+      ocrHistory: [],
 
       // Message actions
       addMessage: (message) => {
@@ -446,6 +447,28 @@ export const useAssistantStore = create<AssistantState>()(
           },
         }));
       },
+
+      // OCR History actions
+      addOCRHistory: (item) => {
+        const newItem: OCRHistoryItem = {
+          ...item,
+          id: generateId(),
+          createdAt: Date.now(),
+        };
+        set((state) => ({
+          ocrHistory: [newItem, ...state.ocrHistory],
+        }));
+      },
+
+      deleteOCRHistory: (id) => {
+        set((state) => ({
+          ocrHistory: state.ocrHistory.filter((item) => item.id !== id),
+        }));
+      },
+
+      clearOCRHistory: () => {
+        set({ ocrHistory: [] });
+      },
     }),
     {
       name: 'ai-assistant-storage',
@@ -456,6 +479,7 @@ export const useAssistantStore = create<AssistantState>()(
         tasks: state.tasks,
         memories: state.memories,
         files: state.files,
+        ocrHistory: state.ocrHistory,
       }),
     }
   )
