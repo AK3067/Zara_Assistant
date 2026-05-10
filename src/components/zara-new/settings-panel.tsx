@@ -17,14 +17,13 @@ import {
   Target,
   Moon,
   Check,
-  Volume2 as VolumeIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useAssistantStore, getPersonality } from '@/store/assistant-store';
-import { AI_PERSONALITIES, AIName, AIPersonality } from '@/types/assistant';
+import { AI_PERSONALITIES, AIName } from '@/types/assistant';
 
 // Icon mapping
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -43,28 +42,12 @@ interface SettingsPanelProps {
 export function SettingsPanel({ onBack, onNavigate }: SettingsPanelProps) {
   const { settings, updateSettings, memories, setAIName } = useAssistantStore();
   const [showPersonalitySelector, setShowPersonalitySelector] = useState(false);
-  const [playingVoice, setPlayingVoice] = useState<AIName | null>(null);
 
   const currentPersonality = getPersonality(settings.aiName);
   const CurrentIcon = ICON_MAP[currentPersonality.icon] || Sparkles;
 
   const handleSelectPersonality = (name: AIName) => {
     setAIName(name);
-  };
-
-  const playVoiceSample = (personality: AIPersonality) => {
-    setPlayingVoice(personality.name);
-    
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(personality.greeting);
-      utterance.pitch = personality.voicePitch;
-      utterance.rate = personality.voiceRate;
-      utterance.onend = () => setPlayingVoice(null);
-      utterance.onerror = () => setPlayingVoice(null);
-      speechSynthesis.speak(utterance);
-    } else {
-      setTimeout(() => setPlayingVoice(null), 1000);
-    }
   };
 
   return (
@@ -114,7 +97,7 @@ export function SettingsPanel({ onBack, onNavigate }: SettingsPanelProps) {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-white">{currentPersonality.displayName}</p>
-                  <p className="text-xs text-white/40">{currentPersonality.personality}</p>
+                  <p className="text-xs text-white/40">{currentPersonality.description}</p>
                 </div>
                 <ChevronRight className={cn("w-5 h-5 text-white/40 transition-transform", showPersonalitySelector && "rotate-90")} />
               </div>
@@ -133,68 +116,34 @@ export function SettingsPanel({ onBack, onNavigate }: SettingsPanelProps) {
                     {AI_PERSONALITIES.map((personality) => {
                       const Icon = ICON_MAP[personality.icon] || Sparkles;
                       const isSelected = settings.aiName === personality.name;
-                      const isPlaying = playingVoice === personality.name;
 
                       return (
-                        <div
+                        <button
                           key={personality.name}
-                          role="button"
-                          tabIndex={0}
                           onClick={() => handleSelectPersonality(personality.name)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              handleSelectPersonality(personality.name);
-                            }
-                          }}
                           className={cn(
-                            "w-full p-3 rounded-xl border transition-all text-left cursor-pointer",
+                            "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
                             isSelected
                               ? "border-white/30 bg-white/10"
                               : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"
                           )}
                         >
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-8 h-8 rounded-lg flex items-center justify-center"
-                              style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
-                            >
-                              <Icon className={cn("w-4 h-4", personality.color === '#ffffff' ? "text-black" : "text-white")} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium text-white">{personality.displayName}</p>
-                                {isSelected && (
-                                  <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
-                                    <Check className="w-3 h-3 text-black" />
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-xs text-white/40 truncate">{personality.description}</p>
-                            </div>
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                playVoiceSample(personality);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.stopPropagation();
-                                  playVoiceSample(personality);
-                                }
-                              }}
-                              className={cn(
-                                "p-2 rounded-full transition-all cursor-pointer",
-                                isPlaying
-                                  ? "bg-white/20 text-white"
-                                  : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60"
-                              )}
-                            >
-                              <VolumeIcon className={cn("w-4 h-4", isPlaying && "animate-pulse")} />
-                            </div>
+                          <div 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
+                          >
+                            <Icon className={cn("w-4 h-4", personality.color === '#ffffff' ? "text-black" : "text-white")} />
                           </div>
-                        </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white">{personality.displayName}</p>
+                            <p className="text-xs text-white/40 truncate">{personality.description}</p>
+                          </div>
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                              <Check className="w-3 h-3 text-black" />
+                            </div>
+                          )}
+                        </button>
                       );
                     })}
                   </div>
