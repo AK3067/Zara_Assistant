@@ -13,11 +13,13 @@ import {
   WifiOff,
   Menu,
   Cloud,
-  Brain
+  Brain,
+  FileText
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
 import { MemoriesPanel } from './memories-panel';
+import { FilesPanel } from './files-panel';
 import { LocalAIPanel } from '@/components/local-ai-panel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +27,7 @@ import { cn } from '@/lib/utils';
 import { usePWA } from '@/hooks/use-pwa';
 import { useAssistantStore } from '@/store/assistant-store';
 
-type View = 'chat' | 'settings' | 'local-ai' | 'memories';
+type View = 'chat' | 'settings' | 'local-ai' | 'memories' | 'files';
 
 interface ZaraAIProps {
   onWakeWord?: () => void;
@@ -35,7 +37,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [view, setView] = useState<View>('chat');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isOnline } = usePWA();
-  const { conversations, memories, createConversation, clearMessages, loadConversation } = useAssistantStore();
+  const { conversations, memories, files, createConversation, clearMessages, loadConversation } = useAssistantStore();
 
   const handleBack = useCallback(() => {
     setView('chat');
@@ -162,6 +164,30 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           )}
         </button>
 
+        {/* Files Option */}
+        <button
+          onClick={() => handleSelectView('files')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+            view === 'files'
+              ? "bg-white text-black"
+              : "bg-transparent text-white hover:bg-white/10"
+          )}
+        >
+          <FileText className="w-5 h-5" />
+          <span className="font-medium">Files</span>
+          {files && files.length > 0 && (
+            <span className={cn(
+              "ml-auto text-xs px-2 py-0.5 rounded-full",
+              view === 'files'
+                ? "bg-black/20 text-black"
+                : "bg-blue-500/20 text-blue-400"
+            )}>
+              {files.filter(f => !f.isArchived).length}
+            </span>
+          )}
+        </button>
+
         {/* Divider */}
         <div className="h-px bg-white/10 my-3" />
 
@@ -266,7 +292,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-white">
-                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : view === 'memories' ? 'Memories' : 'Settings'}
+                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : view === 'memories' ? 'Memories' : view === 'files' ? 'Files' : 'Settings'}
               </h1>
               {view === 'local-ai' && (
                 <Badge className="bg-green-500/20 text-green-500 text-[10px]">
@@ -344,6 +370,19 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
                 className="h-full"
               >
                 <MemoriesPanel onBack={handleBack} />
+              </motion.div>
+            )}
+
+            {view === 'files' && (
+              <motion.div
+                key="files"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <FilesPanel onBack={handleBack} />
               </motion.div>
             )}
           </AnimatePresence>

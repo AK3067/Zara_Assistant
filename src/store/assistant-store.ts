@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory } from '@/types/assistant';
+import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory, DocFile } from '@/types/assistant';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -159,6 +159,7 @@ export const useAssistantStore = create<AssistantState>()(
       quickTasks: defaultQuickTasks,
       tasks: [],
       memories: [],
+      files: [],
 
       // Message actions
       addMessage: (message) => {
@@ -359,6 +360,59 @@ export const useAssistantStore = create<AssistantState>()(
             (memory.originalText && memory.originalText.toLowerCase().includes(lowerQuery))
         );
       },
+
+      // File actions
+      addFile: (file) => {
+        const wordCount = file.content.split(/\s+/).filter(Boolean).length;
+        const newFile: DocFile = {
+          ...file,
+          id: generateId(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          wordCount,
+        };
+        set((state) => ({
+          files: [newFile, ...state.files],
+        }));
+      },
+
+      updateFile: (id, updates) => {
+        set((state) => ({
+          files: state.files.map((file) => {
+            if (file.id === id) {
+              const wordCount = updates.content ? updates.content.split(/\s+/).filter(Boolean).length : file.wordCount;
+              return { ...file, ...updates, updatedAt: Date.now(), wordCount };
+            }
+            return file;
+          }),
+        }));
+      },
+
+      deleteFile: (id) => {
+        set((state) => ({
+          files: state.files.filter((file) => file.id !== id),
+        }));
+      },
+
+      clearAllFiles: () => {
+        set({ files: [] });
+      },
+
+      toggleFilePin: (id) => {
+        set((state) => ({
+          files: state.files.map((file) =>
+            file.id === id ? { ...file, isPinned: !file.isPinned, updatedAt: Date.now() } : file
+          ),
+        }));
+      },
+
+      archiveFile: (id) => {
+        set((state) => ({
+          files: state.files.map((file) =>
+            file.id === id ? { ...file, isArchived: true, updatedAt: Date.now() } : file
+          ),
+        }));
+      },
     }),
     {
       name: 'ai-assistant-storage',
@@ -368,6 +422,7 @@ export const useAssistantStore = create<AssistantState>()(
         quickTasks: state.quickTasks,
         tasks: state.tasks,
         memories: state.memories,
+        files: state.files,
       }),
     }
   )

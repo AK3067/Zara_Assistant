@@ -127,6 +127,23 @@ export type MemoryCategory =
   | 'health'        // Health-related info
   | 'other';        // Uncategorized
 
+// File/Document Types
+export type DocFileType = 'note' | 'document' | 'list' | 'reminder' | 'idea' | 'journal';
+
+export interface DocFile {
+  id: string;
+  title: string;
+  content: string;
+  type: DocFileType;
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
+  isPinned?: boolean;
+  isArchived?: boolean;
+  wordCount?: number;
+  color?: string; // Optional color tag for organization
+}
+
 export interface AssistantState {
   // Messages
   messages: Message[];
@@ -153,6 +170,9 @@ export interface AssistantState {
 
   // Memories
   memories: Memory[];
+
+  // Files/Documents
+  files: DocFile[];
 
   // Actions
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -188,6 +208,14 @@ export interface AssistantState {
   clearAllMemories: () => void;
   accessMemory: (id: string) => void;
   searchMemories: (query: string) => Memory[];
+
+  // File Actions
+  addFile: (file: Omit<DocFile, 'id' | 'createdAt' | 'updatedAt' | 'wordCount'>) => void;
+  updateFile: (id: string, updates: Partial<DocFile>) => void;
+  deleteFile: (id: string) => void;
+  clearAllFiles: () => void;
+  toggleFilePin: (id: string) => void;
+  archiveFile: (id: string) => void;
 }
 
 // Voice Recognition Types
