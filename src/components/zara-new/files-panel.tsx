@@ -25,6 +25,9 @@ import {
   Copy,
   Share2,
   AlertTriangle,
+  FileDown,
+  FileSpreadsheet,
+  FileType,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +37,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useAssistantStore } from '@/store/assistant-store';
 import type { DocFile, DocFileType } from '@/types/assistant';
+import {
+  exportFile as exportFileToFormat,
+  exportAllFiles,
+  exportMemoriesAsDocx,
+  exportMemoriesAsPdf,
+  exportMemoriesAsExcel,
+  type ExportFormat,
+} from '@/lib/document-utils';
 
 // File type configuration
 const FILE_TYPES: { id: DocFileType; label: string; icon: React.ElementType; color: string }[] = [
@@ -70,6 +81,9 @@ export function FilesPanel({ onBack }: FilesPanelProps) {
   const [showFilters, setShowFilters] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showMemoryExportMenu, setShowMemoryExportMenu] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
   
   // Form state for new/edit file
   const [newTitle, setNewTitle] = useState('');
@@ -167,56 +181,76 @@ export function FilesPanel({ onBack }: FilesPanelProps) {
     setShowClearConfirm(false);
   }, [clearAllFiles]);
 
-  // Export functions
-  const exportToFile = useCallback((content: string, filename: string) => {
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  // Export functions with multiple format support
+  const handleExportFile = useCallback(async (file: DocFile, format: ExportFormat) => {
+    setExportingFormat(format);
+    try {
+      await exportFileToFormat(file, format);
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExportingFormat(null);
+      setActiveMenu(null);
+    }
   }, []);
 
-  const exportFile = useCallback((file: DocFile) => {
-    const content = `${file.title}\n${'='.repeat(file.title.length)}\n\n${file.content}\n\nTags: ${file.tags.join(', ') || 'None'}\nType: ${file.type}\nCreated: ${new Date(file.createdAt).toLocaleString()}\nWord Count: ${file.wordCount}`;
-    exportToFile(content, `${file.title.replace(/[^a-z0-9]/gi, '_')}.txt`);
-    setActiveMenu(null);
-  }, [exportToFile]);
+  const handleExportAllFiles = useCallback(async (format: ExportFormat) => {
+    setExportingFormat(format);
+    try {
+      await exportAllFiles(files, format);
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExportingFormat(null);
+      setShowExportMenu(false);
+    }
+  }, [files]);
 
-  const exportAllFiles = useCallback(() => {
-    let content = 'ZARA AI - ALL FILES EXPORT\n';
-    content += '=' .repeat(40) + '\n\n';
-    
-    files.forEach((file, index) => {
-      content += `\n${index + 1}. ${file.title}\n`;
-      content += '-'.repeat(40) + '\n';
-      content += `${file.content}\n`;
-      content += `Tags: ${file.tags.join(', ') || 'None'}\n`;
-      content += `Type: ${file.type} | Words: ${file.wordCount} | Created: ${new Date(file.createdAt).toLocaleString()}\n`;
-    });
-    
-    exportToFile(content, 'zara_all_files.txt');
-  }, [files, exportToFile]);
+  const handleExportMemories = useCallback(async (format: ExportFormat) => {
+    setExportingFormat(format);
+    try {
+      switch (format) {
+        case 'docx':
+          await exportMemoriesAsDocx(memories);
+          break;
+        case 'pdf':
+          exportMemoriesAsPdf(memories);
+          break;
+        case 'xlsx':
+          exportMemoriesAsExcel(memories);
+          break;
+        case 'txt':
+        default:
+          // Fallback to txt
+          let content = 'ZARA AI - MEMORIES EXPORT\n';
+          content += '='.repeat(40) + '\n\n';
+          memories.forEach((memory, index) => {
+            content += `\n${index + 1}. [${memory.category}] ${memory.content}\n`;
+            content += `Tags: ${memory.tags.join(', ') || 'None'}\n`;
+            content += `Importance: ${memory.importance} | Created: ${new Date(memory.createdAt).toLocaleString()}\n`;
+          });
+          const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'zara_memories.txt';
+          a.click();
+          URL.revokeObjectURL(url);
+          break;
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExportingFormat(null);
+      setShowMemoryExportMenu(false);
+    }
+  }, [memories]);
 
-  const exportMemories = useCallback(() => {
-    let content = 'ZARA AI - MEMORIES EXPORT\n';
-    content += '=' .repeat(40) + '\n\n';
-    
-    memories.forEach((memory, index) => {
-      content += `\n${index + 1}. [${memory.category}] ${memory.content}\n`;
-      content += `Tags: ${memory.tags.join(', ') || 'None'}\n`;
-      content += `Importance: ${memory.importance} | Created: ${new Date(memory.createdAt).toLocaleString()}\n`;
-    });
-    
-    exportToFile(content, 'zara_memories.txt');
-  }, [memories, exportToFile]);
-
-  const exportConversations = useCallback(() => {
+  const handleExportConversations = useCallback((format: ExportFormat) => {
+    // For conversations, we'll use txt format as the primary method
+    // since conversations are primarily text-based
     let content = 'ZARA AI - CONVERSATIONS EXPORT\n';
-    content += '=' .repeat(40) + '\n\n';
+    content += '='.repeat(40) + '\n\n';
     
     conversations.forEach((conv, index) => {
       content += `\n${index + 1}. ${conv.title}\n`;
@@ -227,8 +261,14 @@ export function FilesPanel({ onBack }: FilesPanelProps) {
       content += `Created: ${new Date(conv.createdAt).toLocaleString()}\n`;
     });
     
-    exportToFile(content, 'zara_conversations.txt');
-  }, [conversations, exportToFile]);
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `zara_conversations.${format === 'txt' ? 'txt' : 'txt'}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [conversations]);
 
   const copyToClipboard = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
@@ -339,37 +379,96 @@ export function FilesPanel({ onBack }: FilesPanelProps) {
       </div>
 
       {/* Export Options */}
-      <div className="p-3 border-b border-white/10">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="p-3 border-b border-white/10 space-y-2">
+        {/* Export Files */}
+        <div className="relative">
           <Button
             variant="outline"
             size="sm"
-            onClick={exportAllFiles}
+            onClick={() => setShowExportMenu(!showExportMenu)}
             disabled={files.length === 0}
-            className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white text-xs whitespace-nowrap"
+            className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white text-xs w-full"
           >
-            <Download className="w-3 h-3 mr-1" />
-            Export Files
+            <FileDown className="w-3 h-3 mr-1" />
+            Export All Files
+            <Download className="w-3 h-3 ml-auto" />
           </Button>
+          <AnimatePresence>
+            {showExportMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="absolute left-0 right-0 top-full mt-1 bg-black border border-white/10 rounded-lg overflow-hidden z-10"
+              >
+                {(['txt', 'docx', 'pdf', 'xlsx'] as ExportFormat[]).map((format) => (
+                  <button
+                    key={format}
+                    onClick={() => handleExportAllFiles(format)}
+                    disabled={exportingFormat !== null}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                  >
+                    {format === 'docx' && <FileType className="w-3 h-3 text-blue-400" />}
+                    {format === 'pdf' && <FileText className="w-3 h-3 text-red-400" />}
+                    {format === 'xlsx' && <FileSpreadsheet className="w-3 h-3 text-green-400" />}
+                    {format === 'txt' && <File className="w-3 h-3 text-white/40" />}
+                    Export as {format.toUpperCase()}
+                    {exportingFormat === format && <span className="ml-auto animate-pulse">...</span>}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Export Memories & Chats */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMemoryExportMenu(!showMemoryExportMenu)}
+              disabled={memories.length === 0}
+              className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white text-xs w-full"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              Memories
+            </Button>
+            <AnimatePresence>
+              {showMemoryExportMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="absolute left-0 right-0 top-full mt-1 bg-black border border-white/10 rounded-lg overflow-hidden z-10"
+                >
+                  {(['txt', 'docx', 'pdf', 'xlsx'] as ExportFormat[]).map((format) => (
+                    <button
+                      key={format}
+                      onClick={() => handleExportMemories(format)}
+                      disabled={exportingFormat !== null}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50"
+                    >
+                      {format === 'docx' && <FileType className="w-3 h-3 text-blue-400" />}
+                      {format === 'pdf' && <FileText className="w-3 h-3 text-red-400" />}
+                      {format === 'xlsx' && <FileSpreadsheet className="w-3 h-3 text-green-400" />}
+                      {format === 'txt' && <File className="w-3 h-3 text-white/40" />}
+                      {format.toUpperCase()}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <Button
             variant="outline"
             size="sm"
-            onClick={exportMemories}
-            disabled={memories.length === 0}
-            className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white text-xs whitespace-nowrap"
-          >
-            <Download className="w-3 h-3 mr-1" />
-            Export Memories
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportConversations}
+            onClick={() => handleExportConversations('txt')}
             disabled={conversations.length === 0}
-            className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white text-xs whitespace-nowrap"
+            className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white text-xs flex-1"
           >
             <Download className="w-3 h-3 mr-1" />
-            Export Chats
+            Chats (.txt)
           </Button>
         </div>
       </div>
@@ -673,13 +772,37 @@ export function FilesPanel({ onBack }: FilesPanelProps) {
                                   <Copy className="w-3 h-3" />
                                   Copy Content
                                 </button>
+                                <div className="border-t border-white/10" />
+                                <p className="px-3 py-1 text-[10px] text-white/30 uppercase">Export as</p>
                                 <button
-                                  onClick={() => exportFile(file)}
+                                  onClick={() => handleExportFile(file, 'txt')}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white"
                                 >
-                                  <Download className="w-3 h-3" />
-                                  Export
+                                  <File className="w-3 h-3" />
+                                  .TXT
                                 </button>
+                                <button
+                                  onClick={() => handleExportFile(file, 'docx')}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white"
+                                >
+                                  <FileType className="w-3 h-3 text-blue-400" />
+                                  .DOCX
+                                </button>
+                                <button
+                                  onClick={() => handleExportFile(file, 'pdf')}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white"
+                                >
+                                  <FileText className="w-3 h-3 text-red-400" />
+                                  .PDF
+                                </button>
+                                <button
+                                  onClick={() => handleExportFile(file, 'xlsx')}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white"
+                                >
+                                  <FileSpreadsheet className="w-3 h-3 text-green-400" />
+                                  .XLSX
+                                </button>
+                                <div className="border-t border-white/10" />
                                 <button
                                   onClick={() => archiveFile(file.id)}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/10 hover:text-white"
