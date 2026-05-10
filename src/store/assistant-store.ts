@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory, DocFile } from '@/types/assistant';
+import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory, DocFile, AIName, AIPersonality } from '@/types/assistant';
+import { AI_PERSONALITIES } from '@/types/assistant';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -16,6 +17,13 @@ const defaultSettings: AssistantSettings = {
   enableAutoListen: false,
   language: 'en-US',
   memoriesEnabled: true, // Memories feature enabled by default
+  aiName: 'Zara', // Default AI name
+  setupComplete: false, // Setup not complete by default
+};
+
+// Helper to get personality config
+export const getPersonality = (name: AIName): AIPersonality => {
+  return AI_PERSONALITIES.find(p => p.name === name) || AI_PERSONALITIES[0];
 };
 
 // Default quick tasks for new users
@@ -411,6 +419,31 @@ export const useAssistantStore = create<AssistantState>()(
           files: state.files.map((file) =>
             file.id === id ? { ...file, isArchived: true, updatedAt: Date.now() } : file
           ),
+        }));
+      },
+
+      // AI Personality actions
+      setAIName: (name) => {
+        const personality = getPersonality(name);
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            aiName: name,
+            voiceSettings: {
+              ...state.settings.voiceSettings,
+              pitch: personality.voicePitch,
+              rate: personality.voiceRate,
+            },
+          },
+        }));
+      },
+
+      completeSetup: () => {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            setupComplete: true,
+          },
         }));
       },
     }),

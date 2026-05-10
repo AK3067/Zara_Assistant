@@ -1,5 +1,85 @@
 // AI Assistant Types
 
+// AI Personality Configuration
+export type AIName = 'Zara' | 'Casey' | 'Fiona' | 'Erica' | 'Vesper';
+
+export interface AIPersonality {
+  name: AIName;
+  displayName: string;
+  description: string;
+  color: string; // Primary color for the AI
+  gradient: string; // Gradient for UI elements
+  voicePitch: number; // 0.5 - 2.0
+  voiceRate: number; // 0.5 - 2.0
+  greeting: string;
+  personality: string; // Brief personality description
+  icon: string; // Icon identifier
+}
+
+// Predefined AI Personalities
+export const AI_PERSONALITIES: AIPersonality[] = [
+  {
+    name: 'Zara',
+    displayName: 'Zara',
+    description: 'Friendly, helpful, and always ready to assist',
+    color: '#ffffff',
+    gradient: 'from-white to-gray-300',
+    voicePitch: 1.0,
+    voiceRate: 1.0,
+    greeting: "Hello! I'm Zara, your AI assistant. How can I help you today?",
+    personality: 'Warm, approachable, and efficient',
+    icon: 'sparkles',
+  },
+  {
+    name: 'Casey',
+    displayName: 'Casey',
+    description: 'Calm, analytical, and detail-oriented',
+    color: '#3b82f6',
+    gradient: 'from-blue-500 to-blue-600',
+    voicePitch: 0.9,
+    voiceRate: 0.95,
+    greeting: "Hi there! Casey here. I'm ready to help you think through anything.",
+    personality: 'Thoughtful, precise, and reliable',
+    icon: 'brain',
+  },
+  {
+    name: 'Fiona',
+    displayName: 'Fiona',
+    description: 'Creative, enthusiastic, and full of ideas',
+    color: '#ec4899',
+    gradient: 'from-pink-500 to-rose-500',
+    voicePitch: 1.1,
+    voiceRate: 1.05,
+    greeting: "Hey! Fiona here! Let's create something amazing together!",
+    personality: 'Energetic, imaginative, and inspiring',
+    icon: 'palette',
+  },
+  {
+    name: 'Erica',
+    displayName: 'Erica',
+    description: 'Professional, organized, and productivity-focused',
+    color: '#10b981',
+    gradient: 'from-emerald-500 to-green-500',
+    voicePitch: 0.95,
+    voiceRate: 1.0,
+    greeting: "Hello! Erica at your service. Let's get things done efficiently.",
+    personality: 'Focused, organized, and efficient',
+    icon: 'target',
+  },
+  {
+    name: 'Vesper',
+    displayName: 'Vesper',
+    description: 'Mysterious, insightful, and deeply thoughtful',
+    color: '#8b5cf6',
+    gradient: 'from-violet-500 to-purple-600',
+    voicePitch: 0.85,
+    voiceRate: 0.9,
+    greeting: "Greetings. I'm Vesper. I sense you have questions. Let's explore them together.",
+    personality: 'Deep, intuitive, and wise',
+    icon: 'moon',
+  },
+];
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -86,6 +166,8 @@ export interface AssistantSettings {
   enableAutoListen: boolean;
   language: string;
   memoriesEnabled: boolean; // Toggle to enable/disable memory storage
+  aiName: AIName; // Selected AI personality name
+  setupComplete: boolean; // Whether initial setup is done
 }
 
 export interface Task {
@@ -216,6 +298,10 @@ export interface AssistantState {
   clearAllFiles: () => void;
   toggleFilePin: (id: string) => void;
   archiveFile: (id: string) => void;
+
+  // AI Personality Actions
+  setAIName: (name: AIName) => void;
+  completeSetup: () => void;
 }
 
 // Voice Recognition Types

@@ -23,17 +23,30 @@ import {
   Heart,
   Star,
   X,
+  Brain,
+  Palette,
+  Target,
+  Moon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useAssistantStore } from '@/store/assistant-store';
+import { useAssistantStore, getPersonality } from '@/store/assistant-store';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
 import { usePWA } from '@/hooks/use-pwa';
 import type { MemoryCategory } from '@/types/assistant';
+
+// Icon mapping for AI personalities
+const ICON_MAP: Record<string, React.ElementType> = {
+  sparkles: Sparkles,
+  brain: Brain,
+  palette: Palette,
+  target: Target,
+  moon: Moon,
+};
 
 // ===== MESSAGE TYPE =====
 interface Message {
@@ -91,6 +104,10 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
   
   const { settings, addMemory } = useAssistantStore();
   const { isOnline } = usePWA();
+
+  // Get current AI personality
+  const personality = getPersonality(settings.aiName);
+  const AIIcon = ICON_MAP[personality.icon] || Sparkles;
 
   const {
     isListening,
@@ -234,8 +251,11 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
             transition={{ duration: 0.5, repeat: isListening ? Infinity : 0 }}
             className="relative"
           >
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-black" />
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
+            >
+              <AIIcon className={cn("w-5 h-5", personality.color === '#ffffff' ? "text-black" : "text-white")} />
             </div>
             {isListening && (
               <motion.div
@@ -247,7 +267,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
           </motion.div>
           
           <div>
-            <h1 className="font-semibold text-white">Zara</h1>
+            <h1 className="font-semibold text-white">{personality.displayName}</h1>
             <div className="flex items-center gap-1.5 text-xs text-white/40">
               {isOnline ? (
                 <>
@@ -302,13 +322,14 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6"
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
+                style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
               >
-                <Bot className="w-8 h-8 text-white/40" />
+                <AIIcon className={cn("w-8 h-8", personality.color === '#ffffff' ? "text-black" : "text-white/80")} />
               </motion.div>
-              <h2 className="text-xl font-medium text-white mb-2">Hello, I&apos;m Zara</h2>
+              <h2 className="text-xl font-medium text-white mb-2">Hello, I&apos;m {personality.displayName}</h2>
               <p className="text-sm text-white/40 mb-8 max-w-xs">
-                Your AI assistant. Ask me anything.
+                {personality.description}
               </p>
               
               <div className="flex flex-wrap gap-2 justify-center">
@@ -453,7 +474,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                placeholder="Ask Zara..."
+                placeholder={`Ask ${personality.displayName}...`}
                 disabled={isProcessing}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl h-11 pr-12"
               />

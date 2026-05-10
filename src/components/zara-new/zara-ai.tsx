@@ -23,11 +23,13 @@ import { MemoriesPanel } from './memories-panel';
 import { FilesPanel } from './files-panel';
 import { OCRPanel } from './ocr-panel';
 import { LocalAIPanel } from '@/components/local-ai-panel';
+import { NameSelectionScreen } from './name-selection-screen';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { usePWA } from '@/hooks/use-pwa';
-import { useAssistantStore } from '@/store/assistant-store';
+import { useAssistantStore, getPersonality } from '@/store/assistant-store';
+import type { AIName } from '@/types/assistant';
 
 type View = 'chat' | 'settings' | 'local-ai' | 'memories' | 'files' | 'ocr';
 
@@ -39,7 +41,27 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [view, setView] = useState<View>('chat');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isOnline } = usePWA();
-  const { conversations, memories, files, createConversation, clearMessages, loadConversation } = useAssistantStore();
+  const { 
+    conversations, 
+    memories, 
+    files, 
+    createConversation, 
+    clearMessages, 
+    loadConversation,
+    settings,
+    setAIName,
+    completeSetup,
+  } = useAssistantStore();
+
+  // Get current AI personality
+  const personality = getPersonality(settings.aiName);
+  const aiName = personality.displayName;
+
+  // Handle setup completion
+  const handleSetupComplete = useCallback((name: AIName) => {
+    setAIName(name);
+    completeSetup();
+  }, [setAIName, completeSetup]);
 
   const handleBack = useCallback(() => {
     setView('chat');
@@ -63,17 +85,25 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
     setIsMobileSidebarOpen(false);
   }, [loadConversation]);
 
+  // Show name selection if setup not complete
+  if (!settings.setupComplete) {
+    return <NameSelectionScreen onComplete={handleSetupComplete} />;
+  }
+
   // Sidebar Content
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-black">
       {/* Logo/Header */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-black" />
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: personality.color !== '#ffffff' ? personality.color : undefined }}
+          >
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-white text-lg">Zara AI</h1>
+            <h1 className="font-bold text-white text-lg">{aiName} AI</h1>
             <div className="flex items-center gap-1">
               {isOnline ? (
                 <>
