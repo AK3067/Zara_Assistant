@@ -12,10 +12,12 @@ import {
   Wifi, 
   WifiOff,
   Menu,
-  Cloud
+  Cloud,
+  Brain
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
+import { MemoriesPanel } from './memories-panel';
 import { LocalAIPanel } from '@/components/local-ai-panel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { usePWA } from '@/hooks/use-pwa';
 import { useAssistantStore } from '@/store/assistant-store';
 
-type View = 'chat' | 'settings' | 'local-ai';
+type View = 'chat' | 'settings' | 'local-ai' | 'memories';
 
 interface ZaraAIProps {
   onWakeWord?: () => void;
@@ -33,7 +35,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [view, setView] = useState<View>('chat');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isOnline } = usePWA();
-  const { conversations, createConversation, clearMessages, loadConversation } = useAssistantStore();
+  const { conversations, memories, createConversation, clearMessages, loadConversation } = useAssistantStore();
 
   const handleBack = useCallback(() => {
     setView('chat');
@@ -134,6 +136,30 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           )}>
             Offline
           </span>
+        </button>
+
+        {/* Memories Option */}
+        <button
+          onClick={() => handleSelectView('memories')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+            view === 'memories'
+              ? "bg-white text-black"
+              : "bg-transparent text-white hover:bg-white/10"
+          )}
+        >
+          <Brain className="w-5 h-5" />
+          <span className="font-medium">Memories</span>
+          {memories && memories.length > 0 && (
+            <span className={cn(
+              "ml-auto text-xs px-2 py-0.5 rounded-full",
+              view === 'memories'
+                ? "bg-black/20 text-black"
+                : "bg-purple-500/20 text-purple-400"
+            )}>
+              {memories.length}
+            </span>
+          )}
         </button>
 
         {/* Divider */}
@@ -240,7 +266,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-white">
-                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : 'Settings'}
+                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : view === 'memories' ? 'Memories' : 'Settings'}
               </h1>
               {view === 'local-ai' && (
                 <Badge className="bg-green-500/20 text-green-500 text-[10px]">
@@ -286,7 +312,12 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
                 transition={{ duration: 0.2 }}
                 className="h-full"
               >
-                <SettingsPanel onBack={handleBack} />
+                <SettingsPanel 
+                  onBack={handleBack} 
+                  onNavigate={(dest) => {
+                    if (dest === 'memories') setView('memories');
+                  }}
+                />
               </motion.div>
             )}
 
@@ -300,6 +331,19 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
                 className="h-full"
               >
                 <LocalAIPanel onBack={handleBack} />
+              </motion.div>
+            )}
+
+            {view === 'memories' && (
+              <motion.div
+                key="memories"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <MemoriesPanel onBack={handleBack} />
               </motion.div>
             )}
           </AnimatePresence>

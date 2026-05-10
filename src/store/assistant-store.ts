@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask } from '@/types/assistant';
+import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory } from '@/types/assistant';
 
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
@@ -157,6 +157,7 @@ export const useAssistantStore = create<AssistantState>()(
       settings: defaultSettings,
       quickTasks: defaultQuickTasks,
       tasks: [],
+      memories: [],
 
       // Message actions
       addMessage: (message) => {
@@ -304,6 +305,55 @@ export const useAssistantStore = create<AssistantState>()(
           messages: state.currentConversationId === id ? [] : state.messages,
         }));
       },
+
+      // Memory actions
+      addMemory: (memory) => {
+        const newMemory: Memory = {
+          ...memory,
+          id: generateId(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          accessCount: 0,
+        };
+        set((state) => ({
+          memories: [newMemory, ...state.memories],
+        }));
+      },
+
+      updateMemory: (id, updates) => {
+        set((state) => ({
+          memories: state.memories.map((memory) =>
+            memory.id === id ? { ...memory, ...updates, updatedAt: Date.now() } : memory
+          ),
+        }));
+      },
+
+      deleteMemory: (id) => {
+        set((state) => ({
+          memories: state.memories.filter((memory) => memory.id !== id),
+        }));
+      },
+
+      accessMemory: (id) => {
+        set((state) => ({
+          memories: state.memories.map((memory) =>
+            memory.id === id
+              ? { ...memory, lastAccessed: Date.now(), accessCount: memory.accessCount + 1 }
+              : memory
+          ),
+        }));
+      },
+
+      searchMemories: (query) => {
+        const { memories } = get();
+        const lowerQuery = query.toLowerCase();
+        return memories.filter(
+          (memory) =>
+            memory.content.toLowerCase().includes(lowerQuery) ||
+            memory.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)) ||
+            (memory.originalText && memory.originalText.toLowerCase().includes(lowerQuery))
+        );
+      },
     }),
     {
       name: 'ai-assistant-storage',
@@ -312,6 +362,7 @@ export const useAssistantStore = create<AssistantState>()(
         settings: state.settings,
         quickTasks: state.quickTasks,
         tasks: state.tasks,
+        memories: state.memories,
       }),
     }
   )

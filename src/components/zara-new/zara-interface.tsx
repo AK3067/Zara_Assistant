@@ -33,6 +33,7 @@ import { useAssistantStore } from '@/store/assistant-store';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
 import { usePWA } from '@/hooks/use-pwa';
+import type { MemoryCategory } from '@/types/assistant';
 
 // ===== MESSAGE TYPE =====
 interface Message {
@@ -88,7 +89,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { settings } = useAssistantStore();
+  const { settings, addMemory } = useAssistantStore();
   const { isOnline } = usePWA();
 
   const {
@@ -109,6 +110,52 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-detect and store memories from conversation
+  const detectAndStoreMemory = useCallback((userMessage: string) => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Patterns that indicate personal information worth remembering
+    const memoryPatterns = [
+      // Name patterns
+      { pattern: /(?:my name is|i'm|i am|call me)\s+([a-z]+)/i, category: 'personal' as MemoryCategory, tag: 'name' },
+      // Birthday patterns
+      { pattern: /(?:my birthday is|i was born on|birthday is)\s+(.+)/i, category: 'dates' as MemoryCategory, tag: 'birthday' },
+      // Preference patterns
+      { pattern: /(?:i like|i love|i prefer|i enjoy)\s+(.+)/i, category: 'preferences' as MemoryCategory, tag: 'preference' },
+      { pattern: /(?:i don't like|i hate|i dislike)\s+(.+)/i, category: 'preferences' as MemoryCategory, tag: 'dislike' },
+      // Work patterns
+      { pattern: /(?:i work at|i work for|my job is|i'm a|im a)\s+(.+)/i, category: 'work' as MemoryCategory, tag: 'work' },
+      // Location patterns
+      { pattern: /(?:i live in|i'm from|i am from|my home is in)\s+(.+)/i, category: 'locations' as MemoryCategory, tag: 'location' },
+      // Contact patterns
+      { pattern: /(?:my (?:phone|number|email) is)\s+(.+)/i, category: 'contacts' as MemoryCategory, tag: 'contact' },
+      // Goal patterns
+      { pattern: /(?:my goal is|i want to|i plan to|i hope to)\s+(.+)/i, category: 'goals' as MemoryCategory, tag: 'goal' },
+      // Important dates
+      { pattern: /(?:my anniversary is|our anniversary is|we got married on)\s+(.+)/i, category: 'dates' as MemoryCategory, tag: 'anniversary' },
+      // Remember patterns (explicit)
+      { pattern: /(?:remember that|remember i|note that|keep in mind that)\s+(.+)/i, category: 'facts' as MemoryCategory, tag: 'fact' },
+    ];
+
+    for (const { pattern, category, tag } of memoryPatterns) {
+      const match = userMessage.match(pattern);
+      if (match && match[1]) {
+        const content = match[1].trim();
+        // Only store if it's meaningful (more than 2 characters)
+        if (content.length > 2) {
+          addMemory({
+            content,
+            category,
+            source: 'conversation',
+            importance: 'medium',
+            tags: [tag],
+          });
+          break; // Only store one memory per message
+        }
+      }
+    }
+  }, [addMemory]);
+
   const handleSend = useCallback(async () => {
     if (!input.trim() || isProcessing) return;
 
@@ -122,6 +169,9 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsProcessing(true);
+
+    // Try to detect and store memories from user message
+    detectAndStoreMemory(input.trim());
 
     try {
       const response = await fetch('/api/chat', {

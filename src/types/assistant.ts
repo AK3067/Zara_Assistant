@@ -99,6 +99,33 @@ export interface Task {
   createdAt: number;
 }
 
+// Memory Types
+export interface Memory {
+  id: string;
+  content: string;           // Compressed text content
+  originalText?: string;     // Original full text (optional, for reference)
+  category: MemoryCategory;
+  source: 'manual' | 'conversation' | 'import';
+  importance: 'low' | 'medium' | 'high';
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
+  lastAccessed?: number;
+  accessCount: number;
+}
+
+export type MemoryCategory = 
+  | 'personal'      // Personal info (name, birthday, preferences)
+  | 'work'          // Work-related info
+  | 'preferences'   // User preferences
+  | 'facts'         // General facts to remember
+  | 'contacts'      // Contact information
+  | 'dates'         // Important dates
+  | 'locations'     // Location info
+  | 'goals'         // Goals and aspirations
+  | 'health'        // Health-related info
+  | 'other';        // Uncategorized
+
 export interface AssistantState {
   // Messages
   messages: Message[];
@@ -122,6 +149,9 @@ export interface AssistantState {
   
   // Task History (completed tasks)
   tasks: Task[];
+
+  // Memories
+  memories: Memory[];
 
   // Actions
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -149,6 +179,13 @@ export interface AssistantState {
   loadConversation: (id: string) => void;
   saveCurrentConversation: () => void;
   deleteConversation: (id: string) => void;
+
+  // Memory Actions
+  addMemory: (memory: Omit<Memory, 'id' | 'createdAt' | 'updatedAt' | 'accessCount'>) => void;
+  updateMemory: (id: string, updates: Partial<Memory>) => void;
+  deleteMemory: (id: string) => void;
+  accessMemory: (id: string) => void;
+  searchMemories: (query: string) => Memory[];
 }
 
 // Voice Recognition Types
