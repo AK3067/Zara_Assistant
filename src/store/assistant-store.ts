@@ -15,6 +15,7 @@ const defaultSettings: AssistantSettings = {
   enableVoiceResponse: true,
   enableAutoListen: false,
   language: 'en-US',
+  memoriesEnabled: true, // Memories feature enabled by default
 };
 
 // Default quick tasks for new users
@@ -332,6 +333,10 @@ export const useAssistantStore = create<AssistantState>()(
         set((state) => ({
           memories: state.memories.filter((memory) => memory.id !== id),
         }));
+      },
+
+      clearAllMemories: () => {
+        set({ memories: [] });
       },
 
       accessMemory: (id) => {

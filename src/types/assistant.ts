@@ -85,6 +85,7 @@ export interface AssistantSettings {
   enableVoiceResponse: boolean;
   enableAutoListen: boolean;
   language: string;
+  memoriesEnabled: boolean; // Toggle to enable/disable memory storage
 }
 
 export interface Task {
@@ -184,6 +185,7 @@ export interface AssistantState {
   addMemory: (memory: Omit<Memory, 'id' | 'createdAt' | 'updatedAt' | 'accessCount'>) => void;
   updateMemory: (id: string, updates: Partial<Memory>) => void;
   deleteMemory: (id: string) => void;
+  clearAllMemories: () => void;
   accessMemory: (id: string) => void;
   searchMemories: (query: string) => Memory[];
 }

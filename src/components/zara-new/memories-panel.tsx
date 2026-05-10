@@ -20,10 +20,13 @@ import {
   MessageSquare,
   Filter,
   Hash,
+  Power,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useAssistantStore } from '@/store/assistant-store';
@@ -66,13 +69,17 @@ interface MemoriesPanelProps {
 }
 
 export function MemoriesPanel({ onBack }: MemoriesPanelProps) {
-  const { memories, addMemory, updateMemory, deleteMemory } = useAssistantStore();
+  const { memories, addMemory, updateMemory, deleteMemory, clearAllMemories, settings, updateSettings } = useAssistantStore();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MemoryCategory | 'all'>('all');
   const [isAddingMemory, setIsAddingMemory] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Memories toggle - check if memories feature is enabled
+  const memoriesEnabled = settings.memoriesEnabled ?? true;
   
   // Form state for new/edit memory
   const [newContent, setNewContent] = useState('');
@@ -153,6 +160,15 @@ export function MemoriesPanel({ onBack }: MemoriesPanelProps) {
     setNewTags('');
   }, []);
 
+  const handleToggleMemories = useCallback((enabled: boolean) => {
+    updateSettings({ memoriesEnabled: enabled });
+  }, [updateSettings]);
+
+  const handleClearAll = useCallback(() => {
+    clearAllMemories();
+    setShowClearConfirm(false);
+  }, [clearAllMemories]);
+
   const getCategoryConfig = (categoryId: MemoryCategory) => {
     return CATEGORIES.find((c) => c.id === categoryId) || CATEGORIES[CATEGORIES.length - 1];
   };
@@ -170,26 +186,53 @@ export function MemoriesPanel({ onBack }: MemoriesPanelProps) {
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-white/10">
         <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-          <Brain className="w-5 h-5 text-white" />
+          <Brain className={cn("w-5 h-5", memoriesEnabled ? "text-purple-400" : "text-white/40")} />
         </div>
         <div className="flex-1">
           <h1 className="font-semibold text-white">Memories</h1>
           <p className="text-xs text-white/40">
-            {memories.length} {memories.length === 1 ? 'memory' : 'memories'} stored
+            {memoriesEnabled ? `${memories.length} ${memories.length === 1 ? 'memory' : 'memories'} stored` : 'Memories disabled'}
           </p>
         </div>
-        <Button
-          onClick={() => setIsAddingMemory(true)}
-          className="bg-white text-black hover:bg-white/90"
-          size="sm"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add
-        </Button>
+        {memoriesEnabled && (
+          <Button
+            onClick={() => setIsAddingMemory(true)}
+            className="bg-white text-black hover:bg-white/90"
+            size="sm"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add
+          </Button>
+        )}
       </div>
 
-      {/* Search & Filters */}
-      <div className="p-3 border-b border-white/10 space-y-2">
+      {/* Memories Toggle */}
+      <div className="p-3 border-b border-white/10">
+        <div className="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-white/[0.02]">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center",
+              memoriesEnabled ? "bg-purple-500/20" : "bg-white/5"
+            )}>
+              <Power className={cn("w-4 h-4", memoriesEnabled ? "text-purple-400" : "text-white/40")} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">Enable Memories</p>
+              <p className="text-xs text-white/40">
+                {memoriesEnabled ? 'Zara will remember information' : 'Memory storage is disabled'}
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={memoriesEnabled}
+            onCheckedChange={handleToggleMemories}
+          />
+        </div>
+      </div>
+
+      {/* Search & Filters - Only show when memories are enabled */}
+      {memoriesEnabled && (
+        <div className="p-3 border-b border-white/10 space-y-2">
         <div className="flex gap-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
@@ -255,6 +298,7 @@ export function MemoriesPanel({ onBack }: MemoriesPanelProps) {
           )}
         </AnimatePresence>
       </div>
+      )}
 
       {/* Add Memory Form */}
       <AnimatePresence>
@@ -330,7 +374,71 @@ export function MemoriesPanel({ onBack }: MemoriesPanelProps) {
       {/* Memories List */}
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-2">
-          {filteredMemories.length === 0 ? (
+          {/* Clear All Confirmation Dialog */}
+          <AnimatePresence>
+            {showClearConfirm && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="p-3 rounded-xl border border-red-500/30 bg-red-500/10 mb-2"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-white">Clear all memories?</p>
+                    <p className="text-xs text-white/50 mt-1">This action cannot be undone. All {memories.length} memories will be permanently deleted.</p>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowClearConfirm(false)}
+                    className="text-white/60 hover:text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleClearAll}
+                    className="bg-red-500 text-white hover:bg-red-600"
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Clear All
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Clear All Button */}
+          {memoriesEnabled && memories.length > 0 && !showClearConfirm && (
+            <div className="flex justify-end mb-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowClearConfirm(true)}
+                className="text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
+              >
+                <Trash2 className="w-3 h-3 mr-1" />
+                Clear All
+              </Button>
+            </div>
+          )}
+
+          {/* Disabled State */}
+          {!memoriesEnabled ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-3">
+                <Power className="w-8 h-8 text-white/20" />
+              </div>
+              <p className="text-white/40">Memories are disabled</p>
+              <p className="text-xs text-white/30 mt-1">
+                Enable memories to store and recall information
+              </p>
+            </div>
+          ) : filteredMemories.length === 0 ? (
             <div className="text-center py-12">
               <Brain className="w-12 h-12 mx-auto text-white/20 mb-3" />
               <p className="text-white/40">
