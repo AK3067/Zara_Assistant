@@ -3,4 +3,5 @@ export { ZaraInterface } from './zara-interface';
 export { SettingsPanel } from './settings-panel';
 export { MemoriesPanel } from './memories-panel';
 export { FilesPanel } from './files-panel';
+export { OCRPanel } from './ocr-panel';
 export { ZaraAI } from './zara-ai';

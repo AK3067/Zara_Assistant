@@ -14,12 +14,14 @@ import {
   Menu,
   Cloud,
   Brain,
-  FileText
+  FileText,
+  Scan
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
 import { MemoriesPanel } from './memories-panel';
 import { FilesPanel } from './files-panel';
+import { OCRPanel } from './ocr-panel';
 import { LocalAIPanel } from '@/components/local-ai-panel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +29,7 @@ import { cn } from '@/lib/utils';
 import { usePWA } from '@/hooks/use-pwa';
 import { useAssistantStore } from '@/store/assistant-store';
 
-type View = 'chat' | 'settings' | 'local-ai' | 'memories' | 'files';
+type View = 'chat' | 'settings' | 'local-ai' | 'memories' | 'files' | 'ocr';
 
 interface ZaraAIProps {
   onWakeWord?: () => void;
@@ -188,6 +190,28 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           )}
         </button>
 
+        {/* OCR Scanner Option */}
+        <button
+          onClick={() => handleSelectView('ocr')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+            view === 'ocr'
+              ? "bg-white text-black"
+              : "bg-transparent text-white hover:bg-white/10"
+          )}
+        >
+          <Scan className="w-5 h-5" />
+          <span className="font-medium">OCR Scanner</span>
+          <span className={cn(
+            "ml-auto text-xs px-2 py-0.5 rounded-full",
+            view === 'ocr'
+              ? "bg-black/20 text-black"
+              : "bg-green-500/20 text-green-400"
+          )}>
+            EN
+          </span>
+        </button>
+
         {/* Divider */}
         <div className="h-px bg-white/10 my-3" />
 
@@ -292,11 +316,16 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-white">
-                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : view === 'memories' ? 'Memories' : view === 'files' ? 'Files' : 'Settings'}
+                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : view === 'memories' ? 'Memories' : view === 'files' ? 'Files' : view === 'ocr' ? 'OCR Scanner' : 'Settings'}
               </h1>
               {view === 'local-ai' && (
                 <Badge className="bg-green-500/20 text-green-500 text-[10px]">
                   Offline
+                </Badge>
+              )}
+              {view === 'ocr' && (
+                <Badge className="bg-green-500/20 text-green-500 text-[10px]">
+                  English
                 </Badge>
               )}
             </div>
@@ -383,6 +412,19 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
                 className="h-full"
               >
                 <FilesPanel onBack={handleBack} />
+              </motion.div>
+            )}
+
+            {view === 'ocr' && (
+              <motion.div
+                key="ocr"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <OCRPanel onBack={handleBack} />
               </motion.div>
             )}
           </AnimatePresence>
