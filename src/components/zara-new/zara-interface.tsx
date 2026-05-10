@@ -6,14 +6,9 @@ import {
   Mic,
   Send,
   Sparkles,
-  Settings,
-  Home,
   Camera,
   Image as ImageIcon,
-  Volume2,
-  VolumeX,
   Bot,
-  User,
   Cpu,
   Cloud,
   Wifi,
@@ -99,7 +94,6 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVisualMode, setIsVisualMode] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { settings, addMemory } = useAssistantStore();
@@ -206,7 +200,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
           timestamp: Date.now(),
         }]);
 
-        if (voiceEnabled && settings.enableVoiceResponse) {
+        if (settings.enableVoiceResponse) {
           const textContent = data.message
             .replace(/```[\s\S]*?```/g, 'code block')
             .replace(/`[^`]+`/g, 'code')
@@ -222,7 +216,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
     } finally {
       setIsProcessing(false);
     }
-  }, [input, isProcessing, voiceEnabled, settings.enableVoiceResponse, speak]);
+  }, [input, isProcessing, settings.enableVoiceResponse, speak]);
 
   const quickActions = [
     { icon: Clock, label: 'Schedule', prompt: "What's on my schedule?" },
@@ -233,83 +227,6 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
 
   return (
     <div className="flex flex-col h-full bg-black">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="flex items-center justify-between p-4 border-b border-white/10"
-      >
-        <div className="flex items-center gap-3">
-          {onHome && (
-            <Button variant="ghost" size="icon" onClick={onHome} className="text-white/60 hover:text-white hover:bg-white/10">
-              <Home className="w-5 h-5" />
-            </Button>
-          )}
-          
-          <motion.div
-            animate={{ scale: isListening ? [1, 1.05, 1] : 1 }}
-            transition={{ duration: 0.5, repeat: isListening ? Infinity : 0 }}
-            className="relative"
-          >
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
-            >
-              <AIIcon className={cn("w-5 h-5", personality.color === '#ffffff' ? "text-black" : "text-white")} />
-            </div>
-            {isListening && (
-              <motion.div
-                className="absolute inset-0 rounded-xl bg-white"
-                animate={{ opacity: [0.5, 0, 0.5] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              />
-            )}
-          </motion.div>
-          
-          <div>
-            <h1 className="font-semibold text-white">{personality.displayName}</h1>
-            <div className="flex items-center gap-1.5 text-xs text-white/40">
-              {isOnline ? (
-                <>
-                  <Wifi className="w-3 h-3" />
-                  <span>Online</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-3 h-3" />
-                  <span>Offline</span>
-                </>
-              )}
-              {isProcessing && <span className="text-white/60">- Thinking...</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={cn("text-white/60 hover:text-white hover:bg-white/10", !voiceEnabled && "text-white/30")}
-          >
-            {voiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsVisualMode(!isVisualMode)}
-            className={cn("text-white/60 hover:text-white hover:bg-white/10", isVisualMode && "bg-white/10 text-white")}
-          >
-            <Camera className="w-5 h-5" />
-          </Button>
-          {onSettings && (
-            <Button variant="ghost" size="icon" onClick={onSettings} className="text-white/60 hover:text-white hover:bg-white/10">
-              <Settings className="w-5 h-5" />
-            </Button>
-          )}
-        </div>
-      </motion.header>
-
       {/* Chat Area */}
       <ScrollArea className="flex-1 px-4">
         <div className="py-4 space-y-4">
@@ -431,13 +348,13 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
         )}
       </AnimatePresence>
 
-      {/* Input Area */}
-      <div className="p-4 border-t border-white/10">
+      {/* Combined Input Bar */}
+      <div className="p-3 border-t border-white/10">
         {isListening ? (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center py-6"
+            className="flex flex-col items-center py-4"
           >
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
@@ -459,16 +376,35 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
           </motion.div>
         ) : (
           <div className="flex items-center gap-2">
+            {/* AI Icon + Status */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
+              >
+                <AIIcon className={cn("w-4 h-4", personality.color === '#ffffff' ? "text-black" : "text-white")} />
+              </div>
+              <div className="hidden sm:flex items-center gap-1 text-xs text-white/40">
+                {isOnline ? (
+                  <Wifi className="w-3 h-3 text-green-500" />
+                ) : (
+                  <WifiOff className="w-3 h-3 text-amber-500" />
+                )}
+              </div>
+            </div>
+            
+            {/* Mic Button */}
             <Button
               variant="ghost"
               size="icon"
               onClick={startListening}
               disabled={!isVoiceSupported || isProcessing}
-              className="text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0"
+              className="text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0 h-9 w-9"
             >
-              <Mic className="w-5 h-5" />
+              <Mic className="w-4 h-4" />
             </Button>
             
+            {/* Input Field */}
             <div className="flex-1 relative">
               <Input
                 value={input}
@@ -476,23 +412,34 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                 placeholder={`Ask ${personality.displayName}...`}
                 disabled={isProcessing}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl h-11 pr-12"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl h-9 pr-10"
               />
               {input.trim() && (
                 <Button
                   size="icon"
                   onClick={handleSend}
                   disabled={isProcessing}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg bg-white hover:bg-white/90"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-white hover:bg-white/90"
                 >
-                  <Send className="w-4 h-4 text-black" />
+                  <Send className="w-3 h-3 text-black" />
                 </Button>
               )}
             </div>
+            
+            {/* Camera Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsVisualMode(!isVisualMode)}
+              className={cn("text-white/60 hover:text-white hover:bg-white/10 flex-shrink-0 h-9 w-9", isVisualMode && "bg-white/10 text-white")}
+            >
+              <Camera className="w-4 h-4" />
+            </Button>
           </div>
         )}
         
-        <div className="flex items-center justify-center gap-2 mt-3">
+        {/* Mode Badges */}
+        <div className="flex items-center justify-center gap-2 mt-2">
           <Badge className="bg-white/5 text-white/40 border-white/10 text-[10px]">
             <Cpu className="w-3 h-3 mr-1" />
             Local
