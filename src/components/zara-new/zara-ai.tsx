@@ -37,9 +37,9 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isOnline } = usePWA();
   const {
-    conversations,
-    files,
-    ocrHistory,
+    conversations = [],
+    files = [],
+    ocrHistory = [],
     createConversation,
     clearMessages,
     loadConversation,
@@ -48,10 +48,11 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
     settings,
     setAIName,
     completeSetup,
-  } = useAssistantStore();
+  } = useAssistantStore() || {};
 
   // Get current AI personality
-  const personality = getPersonality(settings.aiName);
+  const aiNameValue = settings?.aiName || 'Zara';
+  const personality = getPersonality(aiNameValue);
   const aiName = personality.displayName;
 
   // Handle setup completion
@@ -83,7 +84,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   }, [loadConversation]);
 
   // Show name selection if setup not complete
-  if (!settings.setupComplete) {
+  if (!settings?.setupComplete) {
     return <NameSelectionScreen onComplete={handleSetupComplete} />;
   }
 
@@ -153,11 +154,11 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-xs text-white/40 uppercase tracking-wider">Chats</span>
-              {conversations && conversations.length > 0 && (
+              {conversations.length > 0 && (
                 <span className="text-xs text-white/30">{conversations.length}</span>
               )}
             </div>
-            {conversations && conversations.length > 0 ? (
+            {conversations.length > 0 ? (
               <div className="space-y-1">
                 {conversations.slice(0, 10).map((conv) => (
                   <div
@@ -189,11 +190,11 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-xs text-white/40 uppercase tracking-wider">OCR Scans</span>
-              {ocrHistory && ocrHistory.length > 0 && (
+              {ocrHistory.length > 0 && (
                 <span className="text-xs text-white/30">{ocrHistory.length}</span>
               )}
             </div>
-            {ocrHistory && ocrHistory.length > 0 ? (
+            {ocrHistory.length > 0 ? (
               <div className="space-y-1">
                 {ocrHistory.slice(0, 5).map((item) => (
                   <div
@@ -252,7 +253,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           >
             <FileText className="w-4 h-4" />
             <span className="text-sm">Files</span>
-            {files && files.length > 0 && (
+            {files.length > 0 && (
               <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded-full">{files.filter(f => !f.isArchived).length}</span>
             )}
           </button>

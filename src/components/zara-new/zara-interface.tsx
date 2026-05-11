@@ -95,12 +95,12 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVisualMode, setIsVisualMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const { settings, addMemory } = useAssistantStore();
+
+  const { settings, addMemory } = useAssistantStore() || {};
   const { isOnline } = usePWA();
 
   // Get current AI personality
-  const personality = getPersonality(settings.aiName);
+  const personality = getPersonality(settings?.aiName || 'Zara');
   const AIIcon = ICON_MAP[personality.icon] || Sparkles;
 
   const {
@@ -111,7 +111,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
     isSupported: isVoiceSupported,
   } = useSpeechRecognition({
     onResult: (text) => setInput(text),
-    language: settings.language,
+    language: settings?.language || 'en-US',
     continuous: false,
   });
 
@@ -200,7 +200,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
           timestamp: Date.now(),
         }]);
 
-        if (settings.enableVoiceResponse) {
+        if (settings?.enableVoiceResponse) {
           const textContent = data.message
             .replace(/```[\s\S]*?```/g, 'code block')
             .replace(/`[^`]+`/g, 'code')
@@ -216,7 +216,7 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
     } finally {
       setIsProcessing(false);
     }
-  }, [input, isProcessing, settings.enableVoiceResponse, speak]);
+  }, [input, isProcessing, settings?.enableVoiceResponse, speak]);
 
   const quickActions = [
     { icon: Clock, label: 'Schedule', prompt: "What's on my schedule?" },

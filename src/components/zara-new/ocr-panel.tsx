@@ -39,8 +39,8 @@ interface OCRPanelProps {
 }
 
 export function OCRPanel({ onBack }: OCRPanelProps) {
-  const { addFile, ocrHistory, addOCRHistory, deleteOCRHistory, clearOCRHistory } = useAssistantStore();
-  
+  const { addFile, ocrHistory = [], addOCRHistory, deleteOCRHistory, clearOCRHistory } = useAssistantStore() || {};
+
   // State
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string>('');

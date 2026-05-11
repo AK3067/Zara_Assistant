@@ -72,7 +72,7 @@ interface FilesPanelProps {
 }
 
 export function FilesPanel({ onBack }: FilesPanelProps) {
-  const { files, addFile, updateFile, deleteFile, clearAllFiles, toggleFilePin, archiveFile, conversations, memories } = useAssistantStore();
+  const { files = [], addFile, updateFile, deleteFile, clearAllFiles, toggleFilePin, archiveFile, conversations = [], memories = [] } = useAssistantStore() || {};
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<DocFileType | 'all'>('all');

@@ -63,7 +63,7 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ onBack }: SettingsPanelProps) {
-  const { settings, updateSettings, memories, setAIName, addMemory, updateMemory, deleteMemory, clearAllMemories } = useAssistantStore();
+  const { settings, updateSettings, memories = [], setAIName, addMemory, updateMemory, deleteMemory, clearAllMemories } = useAssistantStore() || {};
   const [showPersonalitySelector, setShowPersonalitySelector] = useState(false);
   const [showMemories, setShowMemories] = useState(false);
   const [isAddingMemory, setIsAddingMemory] = useState(false);
@@ -76,9 +76,9 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
   const [newImportance, setNewImportance] = useState<'low' | 'medium' | 'high'>('medium');
   const [newTags, setNewTags] = useState('');
 
-  const currentPersonality = getPersonality(settings.aiName);
+  const currentPersonality = getPersonality(settings?.aiName || 'Zara');
   const CurrentIcon = ICON_MAP[currentPersonality.icon] || Sparkles;
-  const memoriesEnabled = settings.memoriesEnabled ?? true;
+  const memoriesEnabled = settings?.memoriesEnabled ?? true;
 
   const handleSelectPersonality = (name: AIName) => {
     setAIName(name);
@@ -228,7 +228,7 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
                   <div className="space-y-2 pt-2">
                     {AI_PERSONALITIES.map((personality) => {
                       const Icon = ICON_MAP[personality.icon] || Sparkles;
-                      const isSelected = settings.aiName === personality.name;
+                      const isSelected = settings?.aiName === personality.name;
 
                       return (
                         <button
@@ -278,7 +278,7 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between p-3 rounded-xl border border-white/10 bg-white/[0.02]">
                 <div className="flex items-center gap-3">
-                  {settings.enableVoiceResponse ? (
+                  {settings?.enableVoiceResponse ? (
                     <Volume2 className="w-5 h-5 text-white" />
                   ) : (
                     <VolumeX className="w-5 h-5 text-white/40" />
@@ -289,7 +289,7 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
                   </div>
                 </div>
                 <Switch
-                  checked={settings.enableVoiceResponse}
+                  checked={settings?.enableVoiceResponse ?? true}
                   onCheckedChange={(checked) => updateSettings({ enableVoiceResponse: checked })}
                 />
               </div>
@@ -311,7 +311,7 @@ export function SettingsPanel({ onBack }: SettingsPanelProps) {
                 <Globe className="w-5 h-5 text-white" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-white">Language</p>
-                  <p className="text-xs text-white/40">{settings.language === 'en-US' ? 'English (US)' : settings.language}</p>
+                  <p className="text-xs text-white/40">{(settings?.language || 'en-US') === 'en-US' ? 'English (US)' : settings?.language}</p>
                 </div>
               </div>
             </div>
