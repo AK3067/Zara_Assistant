@@ -1,0 +1,74 @@
+{
+  "name": "Zara AI Assistant",
+  "short_name": "Zara AI",
+  "description": "Your intelligent AI companion with voice, chat, and local AI features. Works offline with on-device processing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Zara AI Mobile Interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Chat",
+      "short_name": "Chat",
+      "description": "Start a new conversation with Zara",
+      "url": "/?action=chat",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Voice Mode",
+      "short_name": "Voice",
+      "description": "Start voice conversation",
+      "url": "/?action=voice",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Local AI",
+      "short_name": "Local",
+      "description": "Open offline AI features",
+      "url": "/?action=local-ai",
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "features": [
+    "Voice Recognition",
+    "Text-to-Speech",
+    "Wake Word Detection",
+    "Quick Tasks",
+    "Local AI Processing",
+    "Offline Support",
+    "Smart Templates",
+    "Calendar & Planning",
+    "Knowledge Base",
+    "Offline Voice Commands",
+    "Smart Search"
+  ]
+}

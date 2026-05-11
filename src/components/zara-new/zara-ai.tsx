@@ -4,24 +4,20 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageSquare, 
-  Cpu, 
   Settings, 
   Plus, 
   Sparkles, 
   Wifi, 
   WifiOff,
   Menu,
-  Cloud,
   FileText,
   Scan,
-  Clock,
   Trash2,
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
 import { FilesPanel } from './files-panel';
 import { OCRPanel } from './ocr-panel';
-import { LocalAIPanel } from '@/components/local-ai-panel';
 import { NameSelectionScreen } from './name-selection-screen';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +26,7 @@ import { usePWA } from '@/hooks/use-pwa';
 import { useAssistantStore, getPersonality } from '@/store/assistant-store';
 import type { AIName } from '@/types/assistant';
 
-type View = 'chat' | 'settings' | 'local-ai' | 'files' | 'ocr';
+type View = 'chat' | 'settings' | 'files' | 'ocr';
 
 interface ZaraAIProps {
   onWakeWord?: () => void;
@@ -314,13 +310,8 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-white">
-                {view === 'chat' ? 'Chat' : view === 'local-ai' ? 'Local AI' : view === 'files' ? 'Files' : view === 'ocr' ? 'OCR Scanner' : 'Settings'}
+                {view === 'chat' ? 'Chat' : view === 'files' ? 'Files' : view === 'ocr' ? 'OCR Scanner' : 'Settings'}
               </h1>
-              {view === 'local-ai' && (
-                <Badge className="bg-green-500/20 text-green-500 text-[10px]">
-                  Offline
-                </Badge>
-              )}
               {view === 'ocr' && (
                 <Badge className="bg-green-500/20 text-green-500 text-[10px]">
                   English
@@ -366,19 +357,6 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
                 className="h-full"
               >
                 <SettingsPanel onBack={handleBack} />
-              </motion.div>
-            )}
-
-            {view === 'local-ai' && (
-              <motion.div
-                key="local-ai"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                className="h-full"
-              >
-                <LocalAIPanel onBack={handleBack} />
               </motion.div>
             )}
 
