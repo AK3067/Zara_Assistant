@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AssistantState, Message, Task, Conversation, AssistantSettings, QuickTask, Memory, DocFile, AIName, AIPersonality, OCRHistoryItem } from '@/types/assistant';
@@ -481,6 +482,37 @@ export const useAssistantStore = create<AssistantState>()(
         files: state.files,
         ocrHistory: state.ocrHistory,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state._hasHydrated = true;
+        }
+      },
     }
   )
 );
+
+// Add hydration state to the store
+interface ExtendedAssistantState extends AssistantState {
+  _hasHydrated?: boolean;
+}
+
+// Hook to check if store has been hydrated
+export const useHydration = () => {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // Check hydration after mount
+    const unsub = useAssistantStore.persist.onFinishHydration(() => {
+      setHydrated(true);
+    });
+
+    // If already hydrated
+    if (useAssistantStore.persist.hasHydrated()) {
+      setHydrated(true);
+    }
+
+    return unsub;
+  }, []);
+
+  return hydrated;
+};

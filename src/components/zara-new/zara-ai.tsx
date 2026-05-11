@@ -23,7 +23,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { usePWA } from '@/hooks/use-pwa';
-import { useAssistantStore, getPersonality } from '@/store/assistant-store';
+import { useAssistantStore, getPersonality, useHydration } from '@/store/assistant-store';
 import type { AIName } from '@/types/assistant';
 
 type View = 'chat' | 'settings' | 'files' | 'ocr';
@@ -36,6 +36,8 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [view, setView] = useState<View>('chat');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { isOnline } = usePWA();
+  const hydrated = useHydration();
+  
   const {
     conversations = [],
     files = [],
@@ -54,6 +56,15 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const aiNameValue = settings?.aiName || 'Zara';
   const personality = getPersonality(aiNameValue);
   const aiName = personality.displayName;
+
+  // Show loading state during hydration
+  if (!hydrated) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="animate-pulse text-white/40">Loading...</div>
+      </div>
+    );
+  }
 
   // Handle setup completion
   const handleSetupComplete = useCallback((name: AIName) => {
