@@ -32,6 +32,7 @@ import { useAssistantStore, getPersonality } from '@/store/assistant-store';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
 import { usePWA } from '@/hooks/use-pwa';
+import { ZaraCrystal } from './zara-crystal';
 import type { MemoryCategory } from '@/types/assistant';
 
 // Icon mapping for AI personalities
@@ -236,13 +237,17 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center justify-center py-16 text-center"
             >
+              {/* Zara Crystal - Signature Visual Identity */}
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-                style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
+                className="mb-6"
               >
-                <AIIcon className={cn("w-8 h-8", personality.color === '#ffffff' ? "text-black" : "text-white/80")} />
+                <ZaraCrystal
+                  size="xl"
+                  state={isProcessing ? 'processing' : isSpeaking ? 'speaking' : 'idle'}
+                  color={personality.color}
+                />
               </motion.div>
               <h2 className="text-xl font-medium text-white mb-2">Hello, I&apos;m {personality.displayName}</h2>
               <p className="text-sm text-white/40 mb-8 max-w-xs">
@@ -356,12 +361,16 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center py-4"
           >
+            {/* Zara Crystal in Listening State */}
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-              className="w-14 h-14 rounded-full bg-white flex items-center justify-center mb-4"
+              className="mb-4"
             >
-              <Mic className="w-7 h-7 text-black" />
+              <ZaraCrystal
+                size="lg"
+                state="listening"
+                color={personality.color}
+                onClick={stopListening}
+              />
             </motion.div>
             <VoiceWaveform isActive={isListening} />
             <p className="text-sm text-white/40 mt-3">{transcript || 'Listening...'}</p>
@@ -376,14 +385,14 @@ export function ZaraInterface({ onHome, onSettings }: ZaraInterfaceProps) {
           </motion.div>
         ) : (
           <div className="flex items-center gap-2">
-            {/* AI Icon + Status */}
+            {/* Zara Crystal - AI Status Indicator */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: personality.color === '#ffffff' ? '#ffffff' : personality.color }}
-              >
-                <AIIcon className={cn("w-4 h-4", personality.color === '#ffffff' ? "text-black" : "text-white")} />
-              </div>
+              <ZaraCrystal
+                size="sm"
+                state={isProcessing ? 'processing' : isSpeaking ? 'speaking' : 'idle'}
+                color={personality.color}
+                showGlow={false}
+              />
               <div className="hidden sm:flex items-center gap-1 text-xs text-white/40">
                 {isOnline ? (
                   <Wifi className="w-3 h-3 text-green-500" />

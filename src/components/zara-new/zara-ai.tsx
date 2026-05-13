@@ -17,6 +17,7 @@ import {
   Play,
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
+import { ZaraCrystal } from './zara-crystal';
 import { SettingsPanel } from './settings-panel';
 import { FilesPanel } from './files-panel';
 import { OCRPanel } from './ocr-panel';
@@ -128,12 +129,12 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
       {/* Logo/Header */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div 
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: personality.color !== '#ffffff' ? personality.color : undefined }}
-          >
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
+          <ZaraCrystal
+            size="sm"
+            state="idle"
+            color={personality.color}
+            showGlow={false}
+          />
           <div>
             <h1 className="font-bold text-white text-lg">{aiName} AI</h1>
             <div className="flex items-center gap-1">
