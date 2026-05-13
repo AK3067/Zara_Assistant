@@ -4,7 +4,6 @@ import {
   MessageSquare, 
   Settings, 
   Plus, 
-  Sparkles, 
   Wifi, 
   WifiOff,
   Menu,
@@ -13,8 +12,6 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
-  Eye,
-  Play,
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { ZaraCrystal } from './zara-crystal';
@@ -155,23 +152,13 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
       </div>
 
       {/* New Chat Button */}
-      <div className="p-3 border-b border-white/10 space-y-2">
+      <div className="p-3 border-b border-white/10">
         <button
           onClick={handleNewChat}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-all"
         >
           <Plus className="w-5 h-5" />
           <span>New Chat</span>
-        </button>
-        
-        {/* Clean View Mode Button */}
-        <button
-          onClick={() => setCleanViewActive(true)}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white/80 hover:text-white hover:border-purple-500/50 transition-all"
-        >
-          <Eye className="w-4 h-4 text-purple-400" />
-          <span className="text-sm">Clean View</span>
-          <span className="text-[10px] text-white/40 ml-auto">Reels/Shorts</span>
         </button>
       </div>
 
