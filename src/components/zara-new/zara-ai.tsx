@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -15,12 +13,15 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  Eye,
+  Play,
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
 import { FilesPanel } from './files-panel';
 import { OCRPanel } from './ocr-panel';
 import { NameSelectionScreen } from './name-selection-screen';
+import { CleanViewMode } from './clean-view-mode';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [chatHistoryOpen, setChatHistoryOpen] = useState(true); // Chat history open by default
   const [ocrHistoryOpen, setOCRHistoryOpen] = useState(false);  // OCR history closed by default
+  const [cleanViewActive, setCleanViewActive] = useState(false); // Clean View Mode
   const { isOnline } = usePWA();
   const hydrated = useHydration();
   
@@ -152,13 +154,23 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
       </div>
 
       {/* New Chat Button */}
-      <div className="p-3 border-b border-white/10">
+      <div className="p-3 border-b border-white/10 space-y-2">
         <button
           onClick={handleNewChat}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-all"
         >
           <Plus className="w-5 h-5" />
           <span>New Chat</span>
+        </button>
+        
+        {/* Clean View Mode Button */}
+        <button
+          onClick={() => setCleanViewActive(true)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white/80 hover:text-white hover:border-purple-500/50 transition-all"
+        >
+          <Eye className="w-4 h-4 text-purple-400" />
+          <span className="text-sm">Clean View</span>
+          <span className="text-[10px] text-white/40 ml-auto">Reels/Shorts</span>
         </button>
       </div>
 
@@ -448,6 +460,16 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Clean View Mode Overlay */}
+      <AnimatePresence>
+        {cleanViewActive && (
+          <CleanViewMode
+            isActive={cleanViewActive}
+            onDeactivate={() => setCleanViewActive(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
