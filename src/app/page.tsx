@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LandingScreen, ZaraAI } from '@/components/zara-new';
+import { InstallPrompt } from '@/components/zara-new/install-prompt';
 import { AssistantOverlay } from '@/components/assistant-overlay';
 import { useWakeWord } from '@/hooks/use-wake-word';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
@@ -245,7 +246,8 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-
+      {/* Install Prompt */}
+      <InstallPrompt />
     </div>
   );
 }

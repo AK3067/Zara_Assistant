@@ -6,3 +6,4 @@ export { MemoriesPanel } from './memories-panel';
 export { FilesPanel } from './files-panel';
 export { OCRPanel } from './ocr-panel';
 export { ZaraAI } from './zara-ai';
+export { InstallPrompt } from './install-prompt';

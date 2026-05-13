@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Zara AI",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -51,6 +52,26 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="manifest" href="/manifest.json" />
+        {/* Register Service Worker */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                      console.log('SW registered: ', registration.scope);
+                    },
+                    function(registrationError) {
+                      console.log('SW registration failed: ', registrationError);
+                    }
+                  );
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
