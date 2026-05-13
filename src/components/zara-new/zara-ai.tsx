@@ -57,16 +57,7 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const personality = getPersonality(aiNameValue);
   const aiName = personality.displayName;
 
-  // Show loading state during hydration
-  if (!hydrated) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <div className="animate-pulse text-white/40">Loading...</div>
-      </div>
-    );
-  }
-
-  // Handle setup completion
+  // All hooks must be called before any early returns
   const handleSetupComplete = useCallback((name: AIName) => {
     setAIName(name);
     completeSetup();
@@ -94,13 +85,8 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
     setIsMobileSidebarOpen(false);
   }, [loadConversation]);
 
-  // Show name selection if setup not complete
-  if (!settings?.setupComplete) {
-    return <NameSelectionScreen onComplete={handleSetupComplete} />;
-  }
-
   // Format time for history items
-  const formatTime = (timestamp: number) => {
+  const formatTime = useCallback((timestamp: number) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
@@ -114,7 +100,21 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
-  };
+  }, []);
+
+  // Show loading state during hydration (AFTER all hooks)
+  if (!hydrated) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <div className="animate-pulse text-white/40">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show name selection if setup not complete
+  if (!settings?.setupComplete) {
+    return <NameSelectionScreen onComplete={handleSetupComplete} />;
+  }
 
   // Sidebar Content
   const SidebarContent = () => (
