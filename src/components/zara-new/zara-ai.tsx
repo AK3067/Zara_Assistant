@@ -13,6 +13,8 @@ import {
   FileText,
   Scan,
   Trash2,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { ZaraInterface } from './zara-interface';
 import { SettingsPanel } from './settings-panel';
@@ -35,6 +37,8 @@ interface ZaraAIProps {
 export function ZaraAI({ onWakeWord }: ZaraAIProps) {
   const [view, setView] = useState<View>('chat');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [chatHistoryOpen, setChatHistoryOpen] = useState(true); // Chat history open by default
+  const [ocrHistoryOpen, setOCRHistoryOpen] = useState(false);  // OCR history closed by default
   const { isOnline } = usePWA();
   const hydrated = useHydration();
   
@@ -163,77 +167,121 @@ export function ZaraAI({ onWakeWord }: ZaraAIProps) {
         <div className="space-y-4">
           {/* Chat History */}
           <div>
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-xs text-white/40 uppercase tracking-wider">Chats</span>
+            <button
+              onClick={() => setChatHistoryOpen(!chatHistoryOpen)}
+              className="w-full flex items-center justify-between mb-2 px-1 py-1 hover:bg-white/5 rounded-lg transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                {chatHistoryOpen ? (
+                  <ChevronDown className="w-4 h-4 text-white/40" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white/40" />
+                )}
+                <span className="text-xs text-white/40 uppercase tracking-wider">Chats</span>
+              </div>
               {conversations.length > 0 && (
                 <span className="text-xs text-white/30">{conversations.length}</span>
               )}
-            </div>
-            {conversations.length > 0 ? (
-              <div className="space-y-1">
-                {conversations.slice(0, 10).map((conv) => (
-                  <div
-                    key={conv.id}
-                    className="group flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-                    onClick={() => handleLoadConversation(conv.id)}
-                  >
-                    <MessageSquare className="w-4 h-4 text-white/40 flex-shrink-0" />
-                    <span className="flex-1 text-sm text-white/70 truncate">{conv.title}</span>
-                    <span className="text-xs text-white/30">{formatTime(conv.updatedAt)}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteConversation(conv.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
-                    >
-                      <Trash2 className="w-3 h-3 text-white/40 hover:text-red-400" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-white/30 px-2 py-2">No chat history</p>
-            )}
+            </button>
+            <AnimatePresence initial={false}>
+              {chatHistoryOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  {conversations.length > 0 ? (
+                    <div className="space-y-1">
+                      {conversations.slice(0, 10).map((conv) => (
+                        <div
+                          key={conv.id}
+                          className="group flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                          onClick={() => handleLoadConversation(conv.id)}
+                        >
+                          <MessageSquare className="w-4 h-4 text-white/40 flex-shrink-0" />
+                          <span className="flex-1 text-sm text-white/70 truncate">{conv.title}</span>
+                          <span className="text-xs text-white/30">{formatTime(conv.updatedAt)}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteConversation(conv.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
+                          >
+                            <Trash2 className="w-3 h-3 text-white/40 hover:text-red-400" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-white/30 px-2 py-2">No chat history</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* OCR History */}
           <div>
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-xs text-white/40 uppercase tracking-wider">OCR Scans</span>
+            <button
+              onClick={() => setOCRHistoryOpen(!ocrHistoryOpen)}
+              className="w-full flex items-center justify-between mb-2 px-1 py-1 hover:bg-white/5 rounded-lg transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                {ocrHistoryOpen ? (
+                  <ChevronDown className="w-4 h-4 text-white/40" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-white/40" />
+                )}
+                <span className="text-xs text-white/40 uppercase tracking-wider">OCR Scans</span>
+              </div>
               {ocrHistory.length > 0 && (
                 <span className="text-xs text-white/30">{ocrHistory.length}</span>
               )}
-            </div>
-            {ocrHistory.length > 0 ? (
-              <div className="space-y-1">
-                {ocrHistory.slice(0, 5).map((item) => (
-                  <div
-                    key={item.id}
-                    className="group flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-                    onClick={() => {
-                      setView('ocr');
-                      setIsMobileSidebarOpen(false);
-                    }}
-                  >
-                    <Scan className="w-4 h-4 text-green-400/60 flex-shrink-0" />
-                    <span className="flex-1 text-sm text-white/70 truncate">{item.text.slice(0, 25)}...</span>
-                    <span className="text-xs text-white/30">{formatTime(item.createdAt)}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteOCRHistory(item.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
-                    >
-                      <Trash2 className="w-3 h-3 text-white/40 hover:text-red-400" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-white/30 px-2 py-2">No OCR history</p>
-            )}
+            </button>
+            <AnimatePresence initial={false}>
+              {ocrHistoryOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  {ocrHistory.length > 0 ? (
+                    <div className="space-y-1">
+                      {ocrHistory.slice(0, 5).map((item) => (
+                        <div
+                          key={item.id}
+                          className="group flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                          onClick={() => {
+                            setView('ocr');
+                            setIsMobileSidebarOpen(false);
+                          }}
+                        >
+                          <Scan className="w-4 h-4 text-green-400/60 flex-shrink-0" />
+                          <span className="flex-1 text-sm text-white/70 truncate">{item.text.slice(0, 25)}...</span>
+                          <span className="text-xs text-white/30">{formatTime(item.createdAt)}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteOCRHistory(item.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 transition-all"
+                          >
+                            <Trash2 className="w-3 h-3 text-white/40 hover:text-red-400" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-white/30 px-2 py-2">No OCR history</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </ScrollArea>
