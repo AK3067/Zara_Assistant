@@ -72,6 +72,82 @@ bun start
 
 Open [http://localhost:3000](http://localhost:3000) to see your application running.
 
+## 📦 GitHub Pages Deployment
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Build and export a static site:
+
+```bash
+npm run build:static
+```
+
+3. Deploy to GitHub Pages:
+
+```bash
+npm run deploy:gh-pages
+```
+
+If your repository is hosted under a path like `https://<username>.github.io/<repo-name>`, build with a base path:
+
+```bash
+NEXT_PUBLIC_BASE_PATH=/<repo-name> npm run deploy:gh-pages
+```
+
+Your site will be served from the generated `out/` folder.
+
+## 📱 Android / Mobile Packaging
+
+This project is PWA-ready and can be wrapped for Android with Capacitor.
+
+1. Install Capacitor:
+
+```bash
+npm install
+```
+
+2. Initialize Capacitor config:
+
+```bash
+npx cap init com.zara.aiassistant "Zara AI Assistant" --web-dir=out
+```
+
+3. Build the static web app:
+
+```bash
+npm run build:static
+```
+
+4. Copy the generated `out/` web assets to the native app:
+
+```bash
+npm run cap:copy
+```
+
+5. Add Android support:
+
+```bash
+npm run cap:add:android
+```
+
+6. Open Android Studio:
+
+```bash
+npm run cap:open:android
+```
+
+7. When you change the web code, rebuild and sync:
+
+```bash
+npm run android:build
+```
+
+> Note: Android TV or desktop wrappers can reuse this same PWA output. For native Android functionality beyond the web app, add Capacitor plugins and native modules after packaging.
+
 ## 🤖 Powered by Z.ai
 
 This scaffold is optimized for use with [Z.ai](https://chat.z.ai) - your AI assistant for:

@@ -99,6 +99,11 @@ export default function Home() {
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(errorText || 'Chat service unavailable');
+      }
+
       const data = await response.json();
 
       if (data.success && data.message) {
@@ -119,7 +124,9 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error processing message:', error);
-      setOverlayResponse('Sorry, I encountered an error. Please try again.');
+      setOverlayResponse(
+        'AI chat is not available in this static GitHub Pages preview. Please run the app locally or deploy it with a server backend for full chat support.'
+      );
     } finally {
       setIsOverlayProcessing(false);
       setStoreProcessing(false);

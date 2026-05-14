@@ -1,13 +1,13 @@
 // Zara AI Service Worker - PWA Offline Support
 const CACHE_NAME = 'zara-ai-v1';
-const OFFLINE_URL = '/';
+const OFFLINE_URL = './';
 
 // Resources to cache for offline use
 const STATIC_ASSETS = [
-  '/',
-  '/manifest.json',
-  '/logo.png',
-  '/logo.svg',
+  './',
+  './manifest.json',
+  './logo.png',
+  './logo.svg',
 ];
 
 // Install event - cache static assets

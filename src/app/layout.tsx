@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -19,15 +21,15 @@ export const metadata: Metadata = {
   keywords: ["AI", "Assistant", "Voice", "Chat", "Tasks", "Next.js", "TypeScript", "Speech Recognition", "Text to Speech"],
   authors: [{ name: "Zara AI Team" }],
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: `${basePath}/logo.png`,
+    apple: `${basePath}/logo.png`,
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Zara AI",
   },
-  manifest: "/manifest.json",
+  manifest: `${basePath}/manifest.json`,
 };
 
 export const viewport: Viewport = {
@@ -52,14 +54,14 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href={`${basePath}/manifest.json`} />
         {/* Register Service Worker */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(
+                  navigator.serviceWorker.register('${basePath}/sw.js').then(
                     function(registration) {
                       console.log('SW registered: ', registration.scope);
                     },
