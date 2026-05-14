@@ -1,217 +1,125 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+# Zara Assistant
 
-A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with [Z.ai](https://chat.z.ai)'s AI-powered coding assistance.
+A deploy-ready AI assistant web application built with Next.js, TypeScript, Tailwind CSS, and modern React tools.
 
-## ✨ Technology Stack
+## Overview
 
-This scaffold provides a robust foundation built with:
+This project serves as a foundation for an AI assistant UI with voice interaction, OCR support, and mobile-ready deployment.
 
-### 🎯 Core Framework
-- **⚡ Next.js 16** - The React framework for production with App Router
-- **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
-- **🎨 Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
+## Key Features
 
-### 🧩 UI Components & Styling
-- **🧩 shadcn/ui** - High-quality, accessible components built on Radix UI
-- **🎯 Lucide React** - Beautiful & consistent icon library
-- **🌈 Framer Motion** - Production-ready motion library for React
-- **🎨 Next Themes** - Perfect dark mode in 2 lines of code
+- **React + Next.js 16** with App Router
+- **TypeScript** for faster development and safer code
+- **Tailwind CSS 4** for responsive styling
+- **PWA support** with service worker and manifest
+- **GitHub Pages deployment** ready
+- **Android packaging support** via Capacitor
+- **Speech recognition** and **text-to-speech** integration
+- **OCR support** using Tesseract.js
 
-### 📋 Forms & Validation
-- **🎣 React Hook Form** - Performant forms with easy validation
-- **✅ Zod** - TypeScript-first schema validation
+## Requirements
 
-### 🔄 State Management & Data Fetching
-- **🐻 Zustand** - Simple, scalable state management
-- **🔄 TanStack Query** - Powerful data synchronization for React
-- **🌐 Fetch** - Promise-based HTTP request
+- Node.js 18+ or later
+- npm
 
-### 🗄️ Database & Backend
-- **🗄️ Prisma** - Next-generation TypeScript ORM
-- **🔐 NextAuth.js** - Complete open-source authentication solution
-
-### 🎨 Advanced UI Features
-- **📊 TanStack Table** - Headless UI for building tables and datagrids
-- **🖱️ DND Kit** - Modern drag and drop toolkit for React
-- **📊 Recharts** - Redefined chart library built with React and D3
-- **🖼️ Sharp** - High performance image processing
-
-### 🌍 Internationalization & Utilities
-- **🌍 Next Intl** - Internationalization library for Next.js
-- **📅 Date-fns** - Modern JavaScript date utility library
-- **🪝 ReactUse** - Collection of essential React hooks for modern development
-
-## 🎯 Why This Scaffold?
-
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
-
-## 🚀 Quick Start
-
-```bash
-# Install dependencies
-bun install
-
-# Start development server
-bun run dev
-
-# Build for production
-bun run build
-
-# Start production server
-bun start
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
-
-## 📦 GitHub Pages Deployment
-
-1. Install dependencies:
+## Setup
 
 ```bash
 npm install
 ```
 
-2. Build and export a static site:
+## Development
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+## Build
 
 ```bash
 npm run build:static
 ```
 
-3. Deploy to GitHub Pages:
+This command builds the project for static export.
+
+## GitHub Pages Deployment
+
+1. Build the static site:
+
+```bash
+npm run build:static
+```
+
+2. Deploy to GitHub Pages:
 
 ```bash
 npm run deploy:gh-pages
 ```
 
-If your repository is hosted under a path like `https://<username>.github.io/<repo-name>`, build with a base path:
+3. If your repository is hosted under a path like `https://<username>.github.io/<repo-name>`, deploy with:
 
 ```bash
 NEXT_PUBLIC_BASE_PATH=/<repo-name> npm run deploy:gh-pages
 ```
 
-Your site will be served from the generated `out/` folder.
+## Android / Mobile Packaging
 
-## 📱 Android / Mobile Packaging
+This project is PWA-ready and can be packaged as an Android app using Capacitor.
 
-This project is PWA-ready and can be wrapped for Android with Capacitor.
-
-1. Install Capacitor:
-
-```bash
-npm install
-```
-
-2. Initialize Capacitor config:
-
-```bash
-npx cap init com.zara.aiassistant "Zara AI Assistant" --web-dir=out
-```
-
-3. Build the static web app:
+1. Build the static app:
 
 ```bash
 npm run build:static
 ```
 
-4. Copy the generated `out/` web assets to the native app:
+2. Copy assets to Capacitor:
 
 ```bash
 npm run cap:copy
 ```
 
-5. Add Android support:
+3. Add Android support:
 
 ```bash
 npm run cap:add:android
 ```
 
-6. Open Android Studio:
+4. Open Android Studio:
 
 ```bash
 npm run cap:open:android
 ```
 
-7. When you change the web code, rebuild and sync:
+5. Rebuild after web updates:
 
 ```bash
 npm run android:build
 ```
 
-> Note: Android TV or desktop wrappers can reuse this same PWA output. For native Android functionality beyond the web app, add Capacitor plugins and native modules after packaging.
+## Project Structure
 
-## 🤖 Powered by Z.ai
-
-This scaffold is optimized for use with [Z.ai](https://chat.z.ai) - your AI assistant for:
-
-- **💻 Code Generation** - Generate components, pages, and features instantly
-- **🎨 UI Development** - Create beautiful interfaces with AI assistance  
-- **🔧 Bug Fixing** - Identify and resolve issues with intelligent suggestions
-- **📝 Documentation** - Auto-generate comprehensive documentation
-- **🚀 Optimization** - Performance improvements and best practices
-
-Ready to build something amazing? Start chatting with Z.ai at [chat.z.ai](https://chat.z.ai) and experience the future of AI-powered development!
-
-## 📁 Project Structure
-
-```
+```text
 src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+├── app/                 # Next.js App Router pages and layouts
+├── components/          # Reusable UI components
+│   └── ui/              # Design system components
+├── hooks/               # Custom React hooks
+└── lib/                 # Utility functions and helpers
 ```
 
-## 🎨 Available Features & Components
+## Notes
 
-This scaffold includes a comprehensive set of modern web development tools:
+- This repository is configured as a static site. Dynamic API routes are not included in the static build.
+- Voice and OCR features depend on browser/device support.
+- For full Android native features, install Capacitor plugins after packaging.
 
-### 🧩 UI Components (shadcn/ui)
-- **Layout**: Card, Separator, Aspect Ratio, Resizable Panels
-- **Forms**: Input, Textarea, Select, Checkbox, Radio Group, Switch
-- **Feedback**: Alert, Toast (Sonner), Progress, Skeleton
-- **Navigation**: Breadcrumb, Menubar, Navigation Menu, Pagination
-- **Overlay**: Dialog, Sheet, Popover, Tooltip, Hover Card
-- **Data Display**: Badge, Avatar, Calendar
+## Deployment Status
 
-### 📊 Advanced Data Features
-- **Tables**: Powerful data tables with sorting, filtering, pagination (TanStack Table)
-- **Charts**: Beautiful visualizations with Recharts
-- **Forms**: Type-safe forms with React Hook Form + Zod validation
+- The project is already pushed to GitHub and deployed via GitHub Pages.
+- The public URL should be available once GitHub completes the Pages deployment.
 
-### 🎨 Interactive Features
-- **Animations**: Smooth micro-interactions with Framer Motion
-- **Drag & Drop**: Modern drag-and-drop functionality with DND Kit
-- **Theme Switching**: Built-in dark/light mode support
+## Contact
 
-### 🔐 Backend Integration
-- **Authentication**: Ready-to-use auth flows with NextAuth.js
-- **Database**: Type-safe database operations with Prisma
-- **API Client**: HTTP requests with Fetch + TanStack Query
-- **State Management**: Simple and scalable with Zustand
-
-### 🌍 Production Features
-- **Internationalization**: Multi-language support with Next Intl
-- **Image Optimization**: Automatic image processing with Sharp
-- **Type Safety**: End-to-end TypeScript with Zod validation
-- **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
-
-## 🤝 Get Started with Z.ai
-
-1. **Clone this scaffold** to jumpstart your project
-2. **Visit [chat.z.ai](https://chat.z.ai)** to access your AI coding assistant
-3. **Start building** with intelligent code generation and assistance
-4. **Deploy with confidence** using the production-ready setup
-
----
-
-Built with ❤️ for the developer community. Supercharged by [Z.ai](https://chat.z.ai) 🚀
+For support or customization, open an issue on the repository or update the project files directly.
